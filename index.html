@@ -10,6 +10,10 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://unpkg.com/globe.gl"></script>
 
+    <!-- Pustaka Leaflet untuk Peta Interaktif -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -59,9 +63,18 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .btn-press:active { transform: scale(0.96); }
-        /* Style baru untuk background compare agar lebih ringan dari blur */
         .bg-comp-gradient { position: absolute; inset: 0; background: linear-gradient(135deg, #1e293b, #0f172a); z-index: 0; }
         #timer-bar { transition: width 1s linear; }
+        
+        /* Penyesuaian kustom untuk Leaflet popup agar selaras dengan tema aplikasi */
+        .leaflet-popup-content-wrapper {
+            border-radius: 1rem;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .leaflet-popup-content { margin: 0; width: 220px !important; }
+        .leaflet-popup-tip-container { display: none; } /* Menyembunyikan panah bawah popup */
     </style>
 </head>
 <body class="text-brand-text antialiased">
@@ -81,7 +94,7 @@
             </div>
         </header>
 
-        <!-- TOAST NOTIFICATION (Minimalis Icon Saja di Tengah) -->
+        <!-- TOAST NOTIFICATION -->
         <div id="feedback-toast" class="hidden"></div>
 
         <!-- MAIN AREA -->
@@ -102,6 +115,13 @@
                         <div class="bg-white/20 p-4 rounded-2xl"><i class="ph-fill ph-globe text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl">Globe 3D</h3><p class="text-sm text-blue-100 mt-1">Putar bumi interaktif</p></div>
                     </button>
+                    
+                    <!-- Tombol Navigasi Peta Leaflet Baru -->
+                    <button onclick="navigate('explore-map')" class="bg-emerald-500 p-6 rounded-3xl text-left text-white shadow-xl shadow-emerald-500/30 btn-press flex items-center gap-4">
+                        <div class="bg-white/20 p-4 rounded-2xl"><i class="ph-fill ph-map-trifold text-4xl"></i></div>
+                        <div><h3 class="font-bold text-xl">Peta Detail</h3><p class="text-sm text-emerald-100 mt-1">Jelajahi batas dan ibukota</p></div>
+                    </button>
+
                     <button onclick="navigate('explore-catalog')" class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm btn-press flex items-center gap-4 hover:border-brand-primary/30">
                         <div class="bg-indigo-50 p-4 rounded-2xl text-indigo-500"><i class="ph-fill ph-cards text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl text-slate-700">Katalog Ensiklopedia</h3><p class="text-sm text-slate-400 mt-1">Info lengkap semua negara</p></div>
@@ -125,6 +145,16 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- EKSPLORASI MAP (Leaflet) -->
+            <div id="view-explore-map" class="hidden h-full flex flex-col p-6 animate-slide-up relative">
+                <button onclick="navigate('explore-menu')" class="mb-4 flex items-center gap-2 text-slate-500 font-bold w-fit btn-press bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
+                    <i class="ph-bold ph-arrow-left"></i> Kembali
+                </button>
+                <!-- Container untuk Leaflet Map -->
+                <div class="flex-1 w-full bg-slate-100 rounded-3xl overflow-hidden relative shadow-inner border border-slate-200 z-0" id="map-container" style="min-height: 300px;">
                 </div>
             </div>
 
@@ -428,6 +458,7 @@
             'loading': document.getElementById('view-loading'),
             'explore-menu': document.getElementById('view-explore-menu'),
             'explore-globe': document.getElementById('view-explore-globe'),
+            'explore-map': document.getElementById('view-explore-map'),
             'explore-catalog': document.getElementById('view-explore-catalog'),
             'quiz-menu': document.getElementById('view-quiz-menu'),
             'quiz-play': document.getElementById('view-quiz-play'),
@@ -448,7 +479,7 @@
             }).join(', ');
         }
 
-        // Fetch Data dengan membuang yang "undefined" ibukotanya
+        // Fetch Data
         async function fetchCountries() {
             try {
                 const [res1, res2] = await Promise.all([
@@ -464,21 +495,19 @@
                     return { ...c1, ...c2 };
                 });
 
-                // Filter Super Ketat: Harus ada Ibukota, Bendera, dan pastikan string ibukotanya valid
                 countriesData = mergedData.filter(c => 
                     c.capital && c.capital.length > 0 && 
                     c.capital[0] !== "undefined" && c.capital[0].trim() !== "" &&
                     c.flags && c.flags.svg
                 );
-                console.log(`Data siap: ${countriesData.length} negara valid.`);
             } catch (e) { 
                 console.error("Gagal menarik data:", e); 
             }
         }
 
-        // --- SISTEM NAVIGASI SPA & HISTORY API ---
+        // --- SISTEM NAVIGASI ---
         window.onload = async () => {
-            history.replaceState({ view: 'quiz-menu' }, ''); // Set titik awal
+            history.replaceState({ view: 'quiz-menu' }, '');
             await fetchCountries();
             populateCatalog();
             renderView('quiz-menu'); 
@@ -486,7 +515,7 @@
 
         window.onpopstate = (e) => {
             if (e.state && e.state.view) {
-                renderView(e.state.view, false); // false = jangan push history lagi
+                renderView(e.state.view, false);
             }
         };
 
@@ -496,28 +525,23 @@
         }
 
         function renderView(viewId) {
-            // Hentikan timer jika pindah halaman
             stopTimer(); 
             isCompareMode = (viewId === 'quiz-compare');
             
-            // Sembunyikan semua
             Object.values(views).forEach(v => v.classList.add('hidden'));
             toast.classList.add('hidden'); 
             document.getElementById('modal-gameover').classList.add('hidden');
 
-            // Tampilkan View yang dipanggil
             if (views[viewId]) views[viewId].classList.remove('hidden');
 
-            // Kontrol UI Status Header & Navigasi Bawah
             if (viewId === 'quiz-play' || viewId === 'quiz-compare') {
                 statusHeader.classList.remove('hidden');
-                bottomNav.classList.add('hidden'); // Sembunyikan nav bawah saat main
+                bottomNav.classList.add('hidden');
             } else {
                 statusHeader.classList.add('hidden');
                 bottomNav.classList.remove('hidden');
             }
 
-            // Aktifkan tab state jika view berhubungan dengan tab utama
             let activeTab = '';
             if(viewId.includes('explore')) activeTab = 'explore';
             else if(viewId.includes('quiz')) activeTab = 'quiz';
@@ -531,8 +555,8 @@
                 }
             });
 
-            // Trigger init Globe
             if(viewId === 'explore-globe') setTimeout(initGlobe, 200);
+            if(viewId === 'explore-map') setTimeout(initLeafletMap, 200);
         }
 
         function setDifficulty(level) {
@@ -561,11 +585,9 @@
             const tBar = document.getElementById('timer-bar');
             tContainer.classList.remove('hidden');
             
-            // Reset UI Width seketika
             tBar.style.transition = 'none';
             tBar.style.width = '100%';
             
-            // Beri jeda 50ms agar browser merender lebar 100% tanpa transisi
             setTimeout(() => {
                 let timeLeft = timeLimit;
                 tBar.style.transition = 'width 1s linear';
@@ -577,7 +599,6 @@
                     
                     if(timeLeft <= 0) {
                         stopTimer();
-                        // Waktu Habis -> Trigger salah
                         handleTimeOut();
                     }
                 }, 1000);
@@ -592,7 +613,6 @@
             lives--; updateStatsDisplay();
             
             showToast(false);
-            // Tampilkan opsi yang benar dengan border hijau
             allBtns.forEach(b => {
                 if(b.dataset.correct === "true") {
                     b.classList.add('bg-brand-success/20', 'border-brand-success', 'border-dashed');
@@ -603,7 +623,6 @@
 
         // --- LOGIKA KUIS KLASIK ---
         function startQuiz(mode) {
-            // Ambil pengaturan
             const setLives = parseInt(document.getElementById('setting-lives').value);
             const setTime = parseInt(document.getElementById('setting-time').value);
             
@@ -623,7 +642,7 @@
         }
 
         function nextQuestion() {
-            stopTimer(); // Stop timer dari soal sebelumnya
+            stopTimer(); 
             if (lives <= 0) return gameOver();
             
             const container = document.getElementById('options-container');
@@ -645,7 +664,6 @@
             qHeader.innerHTML = '';
 
             if (qType === 'capital') {
-                // UI Ibukota yg Disempurnakan (Tengah, + Bendera + Subregion)
                 qHeader.innerHTML = `
                     <span class="text-sm font-bold text-slate-500 mb-1">Apa ibukota dari</span>
                     <span class="text-brand-primary font-black text-2xl leading-tight text-center mb-3">${currentCorrectAnswer.name.common}</span>
@@ -669,13 +687,13 @@
             }
             
             views['quiz-play'].classList.remove('animate-pop'); void views['quiz-play'].offsetWidth; views['quiz-play'].classList.add('animate-pop');
-            runTimer(); // Mulai timer
+            runTimer(); 
         }
 
         function createOptBtn(cObj, type, container) {
             const btn = document.createElement('button');
             const isCorrect = (cObj === currentCorrectAnswer);
-            btn.dataset.correct = isCorrect; // Tanda opsi yang benar
+            btn.dataset.correct = isCorrect; 
             btn.className = "w-full bg-white border-2 border-slate-100 hover:border-brand-primary/50 text-slate-700 font-bold p-2 sm:p-3 rounded-2xl transition-all btn-press flex flex-col items-center justify-center group relative overflow-hidden min-h-[90px] shadow-sm";
             if (type === 'text-capital') btn.innerHTML = `<span class="text-sm text-center leading-tight w-full px-1">${cObj.capital[0]}</span>`;
             else if (type === 'text-country') btn.innerHTML = `<span class="text-sm text-center leading-tight w-full px-1">${cObj.name.common}</span>`;
@@ -685,7 +703,7 @@
         }
 
         function handleClassicAns(btn, cObj, isCorrect) {
-            stopTimer(); // Hentikan timer karena sudah jawab
+            stopTimer(); 
             const allBtns = document.querySelectorAll('#options-container button');
             allBtns.forEach(b => b.onclick = null);
             
@@ -699,7 +717,6 @@
                 lives--; updateStatsDisplay();
                 showToast(false);
                 
-                // Tampilkan opsi yang benar dengan border hijau
                 allBtns.forEach(b => {
                     if(b.dataset.correct === "true") {
                         b.classList.add('bg-brand-success/20', 'border-brand-success', 'border-dashed');
@@ -738,14 +755,12 @@
         }
 
         function renderCompareUI() {
-            // Render A (Top)
             document.getElementById('comp-flag-a').src = countryA.flags.svg;
             document.getElementById('comp-name-a').innerText = countryA.name.common;
             document.getElementById('comp-sub-a').innerText = countryA.subregion || '-';
             document.getElementById('comp-type-a').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah';
             document.getElementById('comp-val-a').innerText = compareProperty === 'population' ? countryA.population.toLocaleString('id-ID') : countryA.area.toLocaleString('id-ID') + " km²";
             
-            // Render B (Bottom - Sembunyikan Angka)
             document.getElementById('comp-flag-b').src = countryB.flags.svg;
             document.getElementById('comp-name-b').innerText = countryB.name.common;
             document.getElementById('comp-sub-b').innerText = countryB.subregion || '-';
@@ -754,7 +769,6 @@
             document.getElementById('comp-result-b').classList.add('hidden');
             document.getElementById('comp-result-b').classList.remove('animate-pop');
             
-            // Aktifkan klik area
             document.getElementById('compare-top').disabled = false;
             document.getElementById('compare-bottom').disabled = false;
 
@@ -763,14 +777,11 @@
         }
 
         function handleCompareAnswer(chosenArea) {
-            // Sembunyikan hint
             document.getElementById('compare-hint').classList.add('hidden');
 
-            // Kunci klik
             document.getElementById('compare-top').disabled = true;
             document.getElementById('compare-bottom').disabled = true;
 
-            // Buka hasil
             document.getElementById('comp-guess-b').classList.add('hidden');
             const resB = document.getElementById('comp-result-b');
             resB.classList.remove('hidden'); resB.classList.add('animate-pop');
@@ -778,10 +789,8 @@
             const valA = countryA[compareProperty];
             const valB = countryB[compareProperty];
             
-            // Logic: Is it correct?
             const isCorrect = (chosenArea === 'A' && valA >= valB) || (chosenArea === 'B' && valB >= valA);
 
-            // Tampilkan isi data B
             document.getElementById('comp-type-b').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah';
             document.getElementById('comp-val-b').innerText = compareProperty === 'population' ? valB.toLocaleString('id-ID') : valB.toLocaleString('id-ID') + " km²";
             const valText = document.getElementById('comp-val-b');
@@ -798,12 +807,11 @@
                 showToast(false);
             }
 
-            // Setelah waktu jeda, negara B (Penantang/Baru Masuk) SELALU naik ke posisi A, dan A (Lama) menghilang.
             setTimeout(() => {
                 if(lives <= 0 && !isCorrect) { 
                     gameOver(); 
                 } else {
-                    countryA = countryB; // Negara baru pindah ke atas
+                    countryA = countryB; 
                     const validData = countriesData.filter(c => typeof c[compareProperty] === 'number' && c[compareProperty] > 0);
                     countryB = getNextCompare(countryA, validData);
                     renderCompareUI();
@@ -819,7 +827,6 @@
             
             toast.className = `absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[100] rounded-full w-28 h-28 shadow-2xl flex items-center justify-center animate-pop backdrop-blur-md ${isCorrect ? 'bg-brand-success/90' : 'bg-brand-secondary/90'}`;
 
-            // Hilangkan setelah 1 detik
             setTimeout(() => {
                 toast.classList.add('hidden');
             }, 1000);
@@ -855,7 +862,6 @@
             else if(sortVal === 'area-desc') sorted.sort((a,b) => (b.area || 0) - (a.area || 0));
             else if(sortVal === 'area-asc') sorted.sort((a,b) => (a.area || 0) - (b.area || 0));
 
-            // Tampilkan hanya 50 teratas agar tidak berat (bisa diatur)
             sorted.slice(0, 50).forEach((c) => {
                 const card = document.createElement('div');
                 card.className = "bg-white p-3 rounded-2xl shadow-sm border border-slate-50 flex flex-col items-center text-center btn-press cursor-pointer hover:border-brand-primary/30 transition-colors";
@@ -869,7 +875,6 @@
             });
         }
 
-        // Fungsi untuk menangani klik kartu katalog
         function openDetail(c) {
             document.getElementById('detail-flag').src = c.flags.svg;
             document.getElementById('detail-name-common').innerText = c.name.common;
@@ -893,6 +898,7 @@
         }
         function closeFlagZoom() { document.getElementById('modal-flag-zoom').classList.add('hidden'); }
 
+        // 3D Globe
         let myGlobe = null;
         function initGlobe() {
             if (myGlobe) return;
@@ -909,6 +915,79 @@
                     tooltip.classList.remove('hidden');
                 }).onGlobeClick(() => tooltip.classList.add('hidden'));
             myGlobe.pointOfView({ lat: -0.7893, lng: 113.9213, altitude: 2 }, 1000);
+        }
+
+        // --- Inisialisasi Leaflet Map ---
+        let myLeafletMap = null;
+        function initLeafletMap() {
+            if (myLeafletMap) {
+                myLeafletMap.invalidateSize(); // Perbaiki ukuran saat div baru dirender
+                return;
+            }
+
+            // Inisialisasi peta ke elemen dengan id 'map-container'
+            // Koordinat awal (0,0) zoom level 2 (Lihat dunia)
+            myLeafletMap = L.map('map-container', {
+                center: [20, 0],
+                zoom: 2,
+                zoomControl: false // Kita nonaktifkan control bawaan agar bisa diatur posisinya
+            });
+
+            // Tambahkan kontrol zoom di posisi yang aman dari navigasi
+            L.control.zoom({ position: 'topright' }).addTo(myLeafletMap);
+
+            // Tambahkan Tile Layer dari OpenStreetMap (Standard Peta Politik/Jalan)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 18,
+                minZoom: 2
+            }).addTo(myLeafletMap);
+
+            // Tambahkan Marker untuk setiap negara
+            countriesData.forEach(country => {
+                if(country.latlng && country.latlng.length === 2) {
+                    
+                    // Membuat icon kustom sederhana berupa titik biru
+                    const customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="w-4 h-4 bg-brand-primary border-2 border-white rounded-full shadow-md hover:scale-125 transition-transform"></div>`,
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    });
+
+                    // Konten HTML untuk Popup saat marker diklik
+                    const popupContent = `
+                        <div class="flex flex-col">
+                            <div class="bg-slate-50 p-3 border-b border-slate-100 flex items-center gap-3">
+                                <img src="${country.flags.svg}" class="w-10 h-7 object-cover rounded shadow-sm border border-slate-200">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm leading-tight m-0">${country.name.common}</h4>
+                                    <p class="text-[10px] font-bold text-slate-400 m-0 uppercase tracking-wider">${country.region}</p>
+                                </div>
+                            </div>
+                            <div class="p-3 text-xs text-slate-600 flex flex-col gap-1 bg-white">
+                                <p class="m-0 flex justify-between"><span class="text-slate-400">Ibukota:</span> <b class="text-slate-700">${country.capital ? country.capital[0] : '-'}</b></p>
+                                <p class="m-0 flex justify-between"><span class="text-slate-400">Populasi:</span> <b class="text-slate-700">${country.population ? (country.population / 1000000).toFixed(1) + 'M' : '-'}</b></p>
+                                <button onclick="openDetailByCCA3('${country.cca3}')" class="mt-2 w-full bg-brand-primary/10 text-brand-primary font-bold py-1.5 rounded-lg hover:bg-brand-primary hover:text-white transition-colors">Detail Lengkap</button>
+                            </div>
+                        </div>
+                    `;
+
+                    L.marker([country.latlng[0], country.latlng[1]], {icon: customIcon})
+                        .bindPopup(popupContent)
+                        .addTo(myLeafletMap);
+                }
+            });
+        }
+
+        // Fungsi bantuan untuk membuka detail dari popup Peta berdasarkan kode negara
+        function openDetailByCCA3(cca3) {
+            const country = countriesData.find(c => c.cca3 === cca3);
+            if(country) {
+                // Tutup popup peta aktif (opsional)
+                myLeafletMap.closePopup();
+                openDetail(country);
+            }
         }
     </script>
 </body>
