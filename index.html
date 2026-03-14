@@ -66,15 +66,9 @@
         .bg-comp-gradient { position: absolute; inset: 0; background: linear-gradient(135deg, #1e293b, #0f172a); z-index: 0; }
         #timer-bar { transition: width 1s linear; }
         
-        /* Penyesuaian kustom untuk Leaflet popup agar selaras dengan tema aplikasi */
-        .leaflet-popup-content-wrapper {
-            border-radius: 1rem;
-            padding: 0;
-            overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
+        .leaflet-popup-content-wrapper { border-radius: 1rem; padding: 0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
         .leaflet-popup-content { margin: 0; width: 220px !important; }
-        .leaflet-popup-tip-container { display: none; } /* Menyembunyikan panah bawah popup */
+        .leaflet-popup-tip-container { display: none; }
     </style>
 </head>
 <body class="text-brand-text antialiased">
@@ -115,13 +109,10 @@
                         <div class="bg-white/20 p-4 rounded-2xl"><i class="ph-fill ph-globe text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl">Globe 3D</h3><p class="text-sm text-blue-100 mt-1">Putar bumi interaktif</p></div>
                     </button>
-                    
-                    <!-- Tombol Navigasi Peta Leaflet Baru -->
                     <button onclick="navigate('explore-map')" class="bg-emerald-500 p-6 rounded-3xl text-left text-white shadow-xl shadow-emerald-500/30 btn-press flex items-center gap-4">
                         <div class="bg-white/20 p-4 rounded-2xl"><i class="ph-fill ph-map-trifold text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl">Peta Detail</h3><p class="text-sm text-emerald-100 mt-1">Jelajahi batas dan ibukota</p></div>
                     </button>
-
                     <button onclick="navigate('explore-catalog')" class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm btn-press flex items-center gap-4 hover:border-brand-primary/30">
                         <div class="bg-indigo-50 p-4 rounded-2xl text-indigo-500"><i class="ph-fill ph-cards text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl text-slate-700">Katalog Ensiklopedia</h3><p class="text-sm text-slate-400 mt-1">Info lengkap semua negara</p></div>
@@ -148,13 +139,22 @@
                 </div>
             </div>
 
-            <!-- EKSPLORASI MAP (Leaflet) -->
+            <!-- EKSPLORASI MAP (Leaflet) dengan Toggler Gaya Peta -->
             <div id="view-explore-map" class="hidden h-full flex flex-col p-6 animate-slide-up relative">
-                <button onclick="navigate('explore-menu')" class="mb-4 flex items-center gap-2 text-slate-500 font-bold w-fit btn-press bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
+                <button onclick="navigate('explore-menu')" class="mb-4 flex items-center gap-2 text-slate-500 font-bold w-fit btn-press bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 relative z-10">
                     <i class="ph-bold ph-arrow-left"></i> Kembali
                 </button>
-                <!-- Container untuk Leaflet Map -->
-                <div class="flex-1 w-full bg-slate-100 rounded-3xl overflow-hidden relative shadow-inner border border-slate-200 z-0" id="map-container" style="min-height: 300px;">
+                
+                <div class="flex-1 w-full bg-slate-100 rounded-3xl overflow-hidden relative shadow-inner border border-slate-200 z-0 flex flex-col">
+                    <!-- Toggler Gaya Peta -->
+                    <div class="absolute top-4 left-4 z-[400] bg-white/90 backdrop-blur rounded-xl shadow-md p-1 border border-slate-100">
+                        <select id="map-style-selector" onchange="changeMapStyle(this.value)" class="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer p-1">
+                            <option value="street">Peta Jalan</option>
+                            <option value="dark">Mode Gelap</option>
+                            <option value="satellite">Citra Satelit</option>
+                        </select>
+                    </div>
+                    <div id="map-container" class="flex-1 w-full h-full"></div>
                 </div>
             </div>
 
@@ -175,44 +175,46 @@
 
             <!-- KUIS MENU -->
             <div id="view-quiz-menu" class="hidden min-h-full flex flex-col p-6 animate-pop">
-                <!-- Pengaturan Kuis -->
+                
                 <div class="mb-5 bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="ph-fill ph-gear text-slate-400"></i> Pengaturan Permainan</h3>
+                    <h3 class="font-bold text-slate-700 mb-3 flex items-center justify-between">
+                        <span class="flex items-center gap-2"><i class="ph-fill ph-gear text-slate-400"></i> Pengaturan</span>
+                        <!-- Toggle Suara -->
+                        <button onclick="toggleAudio()" id="btn-audio-toggle" class="text-brand-primary bg-brand-primary/10 px-2 py-1 rounded text-xs flex items-center gap-1 btn-press">
+                            <i class="ph-fill ph-speaker-high"></i> Suara On
+                        </button>
+                    </h3>
                     
-                    <div class="flex flex-col gap-3">
-                        <!-- Nyawa -->
+                    <div class="flex flex-col gap-2">
                         <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl px-3">
                             <span class="text-xs font-bold text-slate-500 flex items-center gap-1"><i class="ph-fill ph-heart text-brand-secondary"></i> Nyawa</span>
                             <select id="setting-lives" class="bg-white border border-slate-200 text-xs font-bold rounded-lg px-2 py-1 outline-none text-slate-700">
                                 <option value="1">1 (Sudden Death)</option>
                                 <option value="3" selected>3 Kesempatan</option>
                                 <option value="5">5 Kesempatan</option>
-                                <option value="10">10 Kesempatan</option>
                             </select>
                         </div>
-                        <!-- Waktu -->
                         <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl px-3">
                             <span class="text-xs font-bold text-slate-500 flex items-center gap-1"><i class="ph-fill ph-timer text-blue-500"></i> Waktu</span>
                             <select id="setting-time" class="bg-white border border-slate-200 text-xs font-bold rounded-lg px-2 py-1 outline-none text-slate-700">
                                 <option value="0" selected>Santai (Off)</option>
                                 <option value="10">10 Detik/Soal</option>
                                 <option value="15">15 Detik/Soal</option>
-                                <option value="30">30 Detik/Soal</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- Level Kesulitan Klasik -->
                 <div class="mb-5 bg-white p-4 rounded-3xl shadow-sm border border-slate-100">
                     <h3 class="font-bold text-slate-700 mb-2 flex items-center gap-2"><i class="ph-fill ph-gauge text-brand-primary"></i> Kesulitan Opsi</h3>
                     <div class="flex bg-slate-50 p-1 rounded-xl">
-                        <button onclick="setDifficulty('easy')" id="btn-diff-easy" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-white shadow text-brand-primary transition-all">Dunia Acak</button>
-                        <button onclick="setDifficulty('medium')" id="btn-diff-medium" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 transition-all">Satu Benua</button>
-                        <button onclick="setDifficulty('hard')" id="btn-diff-hard" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 transition-all">Benua Spesifik</button>
+                        <button onclick="setDifficulty('easy')" id="btn-diff-easy" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-white shadow text-brand-primary transition-all btn-press">Dunia Acak</button>
+                        <button onclick="setDifficulty('medium')" id="btn-diff-medium" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 transition-all btn-press">Satu Benua</button>
+                        <button onclick="setDifficulty('hard')" id="btn-diff-hard" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 transition-all btn-press">Benua Spesifik</button>
                     </div>
                 </div>
 
+                <h2 class="text-lg font-black mb-3 text-slate-800">Tebak Klasik</h2>
                 <div class="grid grid-cols-2 gap-3 mb-5">
                     <button onclick="startQuiz('capital')" class="bg-white p-3 rounded-3xl border border-slate-100 shadow-sm text-center btn-press hover:border-brand-primary/30">
                         <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="ph-fill ph-buildings"></i></div>
@@ -232,86 +234,94 @@
                     </button>
                 </div>
 
-                <h2 class="text-lg font-black mb-3 text-slate-800">Adu Statistik King of the Hill</h2>
-                <div class="grid grid-cols-2 gap-3 pb-4">
-                    <button onclick="startQuiz('population')" class="bg-amber-400 p-4 rounded-3xl shadow-md shadow-amber-400/30 text-center btn-press text-white">
+                <h2 class="text-lg font-black mb-3 text-slate-800">Adu Statistik</h2>
+                <div class="grid grid-cols-2 gap-3 mb-5">
+                    <button onclick="startQuiz('population')" class="bg-amber-400 p-3 rounded-3xl shadow-md text-center btn-press text-white">
                         <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="ph-fill ph-users-three"></i></div>
                         <h3 class="font-bold text-xs">Penduduk</h3>
                     </button>
-                    <button onclick="startQuiz('area')" class="bg-teal-500 p-4 rounded-3xl shadow-md shadow-teal-500/30 text-center btn-press text-white">
+                    <button onclick="startQuiz('area')" class="bg-teal-500 p-3 rounded-3xl shadow-md text-center btn-press text-white">
                         <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 text-xl"><i class="ph-fill ph-map-trifold"></i></div>
                         <h3 class="font-bold text-xs">Luas Wilayah</h3>
+                    </button>
+                </div>
+
+                <h2 class="text-lg font-black mb-3 text-slate-800">Kuis Peta Interaktif <span class="bg-brand-secondary text-white text-[8px] px-2 py-0.5 rounded-full ml-1 align-top animate-pulse">BARU</span></h2>
+                <div class="grid gap-3 pb-4">
+                    <button onclick="startQuiz('map-guess')" class="bg-slate-800 p-4 rounded-3xl shadow-md text-left btn-press text-white flex items-center gap-4">
+                        <div class="bg-white/10 p-3 rounded-2xl"><i class="ph-fill ph-crosshair text-3xl text-brand-primary"></i></div>
+                        <div><h3 class="font-bold text-sm">Tebak Lokasi</h3><p class="text-[10px] text-slate-400 mt-1">Geoguessr Lite via Satelit</p></div>
+                    </button>
+                    <button onclick="startQuiz('map-find')" class="bg-brand-primary p-4 rounded-3xl shadow-md shadow-brand-primary/30 text-left btn-press text-white flex items-center gap-4">
+                        <div class="bg-white/20 p-3 rounded-2xl"><i class="ph-fill ph-magnifying-glass text-3xl"></i></div>
+                        <div><h3 class="font-bold text-sm">Cari di Peta</h3><p class="text-[10px] text-blue-100 mt-1">Sentuh marker negara yg tepat</p></div>
                     </button>
                 </div>
             </div>
 
             <!-- PLAY KUIS KLASIK -->
             <div id="view-quiz-play" class="hidden min-h-full flex flex-col p-6 animate-pop relative">
-                <!-- Bar Waktu -->
-                <div id="timer-container" class="hidden absolute top-0 left-0 right-0 h-1.5 bg-slate-200 z-10">
-                    <div id="timer-bar" class="h-full bg-brand-primary w-full"></div>
-                </div>
-
+                <div id="timer-container-classic" class="hidden absolute top-0 left-0 right-0 h-1.5 bg-slate-200 z-10"><div id="timer-bar-classic" class="h-full bg-brand-primary w-full transition-all linear"></div></div>
                 <div class="bg-white rounded-3xl p-5 shadow-xl shadow-slate-200/50 flex flex-col items-center justify-center border border-slate-100 text-center h-full relative overflow-hidden">
-                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand-primary/10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-brand-secondary/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                    <!-- Header Soal Dinamis (Gambar + Teks Tengah) -->
                     <div id="question-header" class="mb-6 w-full flex flex-col items-center justify-center relative z-10 shrink-0"></div>
-                    
-                    <!-- Opsi Jawaban 2x2 -->
                     <div id="options-container" class="w-full grid grid-cols-2 gap-3 mt-auto relative z-10"></div>
                 </div>
             </div>
 
-            <!-- PLAY KUIS ADU STATISTIK (HIGHER / LOWER) - Revamp Tanpa Blur -->
+            <!-- PLAY KUIS ADU STATISTIK -->
             <div id="view-quiz-compare" class="hidden absolute inset-0 z-[15] flex flex-col bg-slate-900 animate-fadeIn">
-                <!-- Petunjuk Cara Main (sementara) -->
-                <div id="compare-hint" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[30] bg-black/60 text-white px-4 py-2 rounded-full backdrop-blur-sm font-bold text-xs pointer-events-none animate-pulse">
-                    Ketuk yang paling besar!
-                </div>
-
-                <!-- Negara Atas (Option 1) -->
+                <div id="compare-hint" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[30] bg-black/60 text-white px-4 py-2 rounded-full backdrop-blur-sm font-bold text-xs pointer-events-none animate-pulse">Ketuk yang paling besar!</div>
                 <button onclick="handleCompareAnswer('A')" id="compare-top" class="flex-1 relative flex flex-col items-center justify-center text-center p-6 text-white overflow-hidden transition-all duration-500 hover:brightness-110 active:scale-95 group border-b border-white/10">
-                    <div class="bg-comp-gradient"></div>
-                    <!-- Overlay bayangan halus agar warna tidak terlalu flat -->
-                    <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                    <div class="bg-comp-gradient"></div><div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
                     <div class="relative z-10 flex flex-col items-center justify-center w-full">
                         <img id="comp-flag-a" src="" class="w-24 h-16 sm:w-32 sm:h-20 object-contain rounded shadow-xl mb-3 bg-white/5 p-1 border border-white/10">
                         <h2 id="comp-name-a" class="text-2xl sm:text-3xl font-black mb-0 leading-tight text-white drop-shadow-md">Negara A</h2>
                         <p id="comp-sub-a" class="text-xs font-bold uppercase tracking-widest text-slate-300 mb-3 drop-shadow">Subregion</p>
-                        
                         <p class="text-sm font-medium opacity-80 mb-1 text-slate-200">Memiliki <span id="comp-type-a">populasi</span></p>
                         <h1 id="comp-val-a" class="text-4xl sm:text-5xl font-black tracking-tighter text-amber-400 drop-shadow-lg">1.000.000</h1>
                     </div>
                 </button>
-
-                <!-- Lencana VS -->
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.5)] z-20 font-black text-brand-primary text-lg pointer-events-none border-4 border-slate-900">VS</div>
-
-                <!-- Negara Bawah (Option 2) -->
                 <button onclick="handleCompareAnswer('B')" id="compare-bottom" class="flex-1 relative flex flex-col items-center justify-center text-center p-6 text-white overflow-hidden transition-all duration-500 hover:brightness-110 active:scale-95 group">
-                    <div class="bg-comp-gradient" style="background: linear-gradient(135deg, #0f172a, #1e293b);"></div>
-                    <!-- Overlay bayangan halus -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                    <div class="bg-comp-gradient" style="background: linear-gradient(135deg, #0f172a, #1e293b);"></div><div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                     <div class="relative z-10 flex flex-col items-center justify-center w-full">
                         <img id="comp-flag-b" src="" class="w-24 h-16 sm:w-32 sm:h-20 object-contain rounded shadow-xl mb-3 bg-white/5 p-1 border border-white/10">
                         <h2 id="comp-name-b" class="text-2xl sm:text-3xl font-black mb-0 leading-tight text-white drop-shadow-md">Negara B</h2>
                         <p id="comp-sub-b" class="text-xs font-bold uppercase tracking-widest text-slate-300 mb-3 drop-shadow">Subregion</p>
-                        
-                        <!-- Hasil Awal: Tersembunyi Tanda Tanya -->
-                        <div id="comp-guess-b" class="flex flex-col items-center group-hover:scale-105 transition-transform">
-                            <p class="text-sm font-medium opacity-80 mb-1 text-slate-200">Pilih jika lebih besar!</p>
-                            <h1 class="text-5xl font-black tracking-tighter text-slate-400 drop-shadow-lg animate-pulse">???</h1>
-                        </div>
-
-                        <!-- Hasil Akhir: Angka Asli -->
-                        <div id="comp-result-b" class="hidden flex-col items-center">
-                            <p class="text-sm font-medium opacity-80 mb-1 text-slate-200">Memiliki <span id="comp-type-b">populasi</span></p>
-                            <h1 id="comp-val-b" class="text-4xl sm:text-5xl font-black tracking-tighter text-brand-success drop-shadow-lg">Hasil</h1>
-                        </div>
+                        <div id="comp-guess-b" class="flex flex-col items-center group-hover:scale-105 transition-transform"><p class="text-sm font-medium opacity-80 mb-1 text-slate-200">Pilih jika lebih besar!</p><h1 class="text-5xl font-black tracking-tighter text-slate-400 drop-shadow-lg animate-pulse">???</h1></div>
+                        <div id="comp-result-b" class="hidden flex-col items-center"><p class="text-sm font-medium opacity-80 mb-1 text-slate-200">Memiliki <span id="comp-type-b">populasi</span></p><h1 id="comp-val-b" class="text-4xl sm:text-5xl font-black tracking-tighter text-brand-success drop-shadow-lg">Hasil</h1></div>
                     </div>
                 </button>
+            </div>
+
+            <!-- PLAY KUIS PETA: TEBAK LOKASI -->
+            <div id="view-quiz-map-guess" class="hidden h-full flex flex-col relative animate-fadeIn">
+                <div id="timer-container-map-guess" class="hidden absolute top-0 left-0 right-0 h-1.5 bg-slate-200 z-[500]"><div id="timer-bar-map-guess" class="h-full bg-brand-primary w-full transition-all linear"></div></div>
+                <div class="h-1/2 w-full bg-slate-900 relative z-0">
+                    <div id="map-guess-container" class="w-full h-full"></div>
+                    <div class="absolute top-4 left-4 right-4 z-[400] text-center pointer-events-none">
+                        <span class="bg-black/60 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-sm shadow-md inline-block animate-pulse border border-white/20">Di negara manakah titik ini?</span>
+                    </div>
+                </div>
+                <div class="h-1/2 w-full bg-white rounded-t-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.1)] relative z-10 p-5 flex flex-col">
+                    <h3 class="font-bold text-slate-700 mb-3 text-center text-sm">Pilih Jawaban</h3>
+                    <div id="map-guess-options" class="grid grid-cols-2 gap-3 flex-1"></div>
+                </div>
+            </div>
+
+            <!-- PLAY KUIS PETA: CARI NEGARA -->
+            <div id="view-quiz-map-find" class="hidden h-full flex flex-col relative animate-fadeIn">
+                <div id="timer-container-map-find" class="hidden absolute top-0 left-0 right-0 h-1.5 bg-slate-200 z-[500]"><div id="timer-bar-map-find" class="h-full bg-brand-primary w-full transition-all linear"></div></div>
+                <div class="bg-white px-6 py-4 flex items-center justify-between shadow-sm z-10 shrink-0 border-b border-slate-100">
+                    <div class="flex-1">
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Misi Pencarian:</p>
+                        <h2 id="map-find-target" class="text-xl font-black text-brand-primary leading-tight">Nama Negara</h2>
+                    </div>
+                    <button onclick="skipMapFind()" class="bg-slate-100 text-slate-500 p-2 rounded-lg text-xs font-bold btn-press hover:bg-slate-200">Lewati</button>
+                </div>
+                <div class="flex-1 w-full bg-slate-100 relative z-0">
+                    <div id="map-find-container" class="w-full h-full"></div>
+                </div>
             </div>
 
             <!-- PROFIL -->
@@ -326,149 +336,137 @@
                 <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
                     <h3 class="font-bold mb-4 flex items-center gap-2 text-slate-700"><i class="ph-fill ph-medal text-amber-500 text-lg"></i> Papan Skor Lokal</h3>
                     <div class="flex justify-between items-center py-3 border-b border-slate-50">
-                        <span class="text-slate-500 font-medium">Skor Tertinggi Klasik</span>
+                        <span class="text-slate-500 font-medium">Skor Kuis Tertinggi</span>
                         <span class="font-black text-brand-primary text-xl" id="profile-highscore">0</span>
                     </div>
-                    <div class="flex justify-between items-center py-3">
+                    <div class="flex justify-between items-center py-3 border-b border-slate-50">
                         <span class="text-slate-500 font-medium">Skor Adu Statistik</span>
                         <span class="font-black text-amber-500 text-xl" id="profile-compare-score">0</span>
+                    </div>
+                    <div class="flex justify-between items-center py-3">
+                        <span class="text-slate-500 font-medium">Skor Peta Interaktif</span>
+                        <span class="font-black text-emerald-500 text-xl" id="profile-map-score">0</span>
                     </div>
                 </div>
             </div>
         </main>
 
-        <!-- NAVIGASI BAWAH (Seragam) -->
+        <!-- NAVIGASI BAWAH -->
         <nav id="bottom-nav" class="absolute bottom-0 w-full bg-white/90 backdrop-blur-md px-6 py-3 rounded-t-3xl shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-30 flex justify-between items-center border-t border-slate-50">
             <button onclick="navigate('explore-menu')" class="nav-btn flex flex-col items-center justify-center gap-1 flex-1 text-slate-400 transition-colors py-1 rounded-xl hover:bg-slate-50" data-tab="explore">
-                <i class="ph-fill ph-compass text-2xl"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider">Eksplor</span>
+                <i class="ph-fill ph-compass text-2xl"></i><span class="text-[10px] font-bold uppercase tracking-wider">Eksplor</span>
             </button>
             <button onclick="navigate('quiz-menu')" class="nav-btn flex flex-col items-center justify-center gap-1 flex-1 text-slate-400 transition-colors py-1 rounded-xl hover:bg-slate-50" data-tab="quiz">
-                <i class="ph-fill ph-play-circle text-2xl"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider">Kuis</span>
+                <i class="ph-fill ph-play-circle text-2xl"></i><span class="text-[10px] font-bold uppercase tracking-wider">Kuis</span>
             </button>
             <button onclick="navigate('profile')" class="nav-btn flex flex-col items-center justify-center gap-1 flex-1 text-slate-400 transition-colors py-1 rounded-xl hover:bg-slate-50" data-tab="profile">
-                <i class="ph-fill ph-user-circle text-2xl"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider">Profil</span>
+                <i class="ph-fill ph-user-circle text-2xl"></i><span class="text-[10px] font-bold uppercase tracking-wider">Profil</span>
             </button>
         </nav>
         
-    </div>
+        <!-- MODAL DETAIL NEGARA (Lengkap & Bisa Scroll Teks Panjang) -->
+        <div id="modal-country-detail" class="hidden absolute inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-6 transition-all">
+            <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm h-[85vh] sm:h-auto sm:max-h-[85vh] shadow-2xl relative animate-slide-up flex flex-col">
+                <button onclick="closeCountryDetail()" class="absolute top-4 right-4 w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center btn-press z-10">
+                    <i class="ph-bold ph-x"></i>
+                </button>
 
-    <!-- MODAL DETAIL NEGARA (Lengkap & Bisa Scroll Teks Panjang) -->
-    <div id="modal-country-detail" class="hidden absolute inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-6 transition-all">
-        <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm h-[85vh] sm:h-auto sm:max-h-[85vh] shadow-2xl relative animate-slide-up flex flex-col">
-            <button onclick="closeCountryDetail()" class="absolute top-4 right-4 w-8 h-8 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center btn-press z-10">
+                <!-- Header Modal -->
+                <div class="p-6 bg-slate-50 rounded-t-3xl border-b border-slate-200 flex flex-col items-center text-center shrink-0">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Ketuk bendera untuk perbesar</p>
+                    <img id="detail-flag" src="" onclick="openFlagZoom(this.src)" class="w-24 h-16 object-cover rounded shadow-md mb-3 border border-slate-200 cursor-zoom-in active:scale-95 transition-transform">
+                    <h2 id="detail-name-common" class="text-2xl font-black text-slate-800 leading-tight">Nama</h2>
+                    <p id="detail-name-official" class="text-xs text-slate-500 font-medium mt-1">Resmi</p>
+                </div>
+
+                <!-- Area Data Scrollable -->
+                <div class="p-6 flex-1 overflow-y-auto flex flex-col gap-4 text-sm text-slate-600 pb-10 no-scrollbar">
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
+                        <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-buildings"></i> Ibukota</span>
+                        <span id="detail-capital" class="font-bold text-slate-800 text-right">Mendata...</span>
+                    </div>
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
+                        <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-map-pin"></i> Benua</span>
+                        <span id="detail-region" class="font-bold text-slate-800 text-right">Mendata...</span>
+                    </div>
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
+                        <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-map-trifold"></i> Sub-Benua</span>
+                        <span id="detail-subregion" class="font-bold text-slate-800 text-right">Mendata...</span>
+                    </div>
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
+                        <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-users"></i> Populasi</span>
+                        <span id="detail-population" class="font-bold text-slate-800 text-right">Mendata...</span>
+                    </div>
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
+                        <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-bounding-box"></i> Luas Wilayah</span>
+                        <span id="detail-area" class="font-bold text-slate-800 text-right">Mendata...</span>
+                    </div>
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-4">
+                        <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap mt-0.5"><i class="ph-bold ph-money"></i> Mata Uang</span>
+                        <span id="detail-currencies" class="font-bold text-brand-primary text-right leading-snug">Mendata...</span>
+                    </div>
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-4">
+                        <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap mt-0.5"><i class="ph-bold ph-translate"></i> Bahasa Resmi</span>
+                        <span id="detail-languages" class="font-bold text-slate-800 text-right leading-snug">Mendata...</span>
+                    </div>
+                    <div class="flex justify-between items-start pt-1 gap-4">
+                        <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap mt-0.5"><i class="ph-bold ph-arrows-merge"></i> Tetangga</span>
+                        <span id="detail-borders" class="font-bold text-brand-warning text-right leading-snug">Mendata...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL FOKUS BENDERA (Zoom Besar) -->
+        <div id="modal-flag-zoom" class="hidden absolute inset-0 bg-black/95 z-[60] flex flex-col items-center justify-center p-4 transition-opacity animate-fadeIn">
+            <button onclick="closeFlagZoom()" class="absolute top-6 right-6 w-10 h-10 bg-white/10 text-white rounded-full flex items-center justify-center text-xl btn-press">
                 <i class="ph-bold ph-x"></i>
             </button>
+            <img id="zoomed-flag" src="" class="max-w-full max-h-[80vh] object-contain rounded shadow-2xl">
+            <p class="text-white/50 text-sm mt-6 font-medium">Ketuk X untuk menutup</p>
+        </div>
 
-            <!-- Header Modal -->
-            <div class="p-6 bg-slate-50 rounded-t-3xl border-b border-slate-200 flex flex-col items-center text-center shrink-0">
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Ketuk bendera untuk perbesar</p>
-                <img id="detail-flag" src="" onclick="openFlagZoom(this.src)" class="w-24 h-16 object-cover rounded shadow-md mb-3 border border-slate-200 cursor-zoom-in active:scale-95 transition-transform">
-                <h2 id="detail-name-common" class="text-2xl font-black text-slate-800 leading-tight">Nama</h2>
-                <p id="detail-name-official" class="text-xs text-slate-500 font-medium mt-1">Resmi</p>
-            </div>
-
-            <!-- Area Data Scrollable -->
-            <div class="p-6 flex-1 overflow-y-auto flex flex-col gap-4 text-sm text-slate-600 pb-10 no-scrollbar">
-                <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
-                    <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-buildings"></i> Ibukota</span>
-                    <span id="detail-capital" class="font-bold text-slate-800 text-right">Mendata...</span>
+        <!-- MODAL GAME OVER -->
+        <div id="modal-gameover" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] flex items-center justify-center p-6">
+            <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl animate-pop relative overflow-hidden">
+                <div class="w-20 h-20 bg-brand-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ph-fill ph-skull text-4xl text-brand-secondary"></i>
                 </div>
-                <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
-                    <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-map-pin"></i> Benua</span>
-                    <span id="detail-region" class="font-bold text-slate-800 text-right">Mendata...</span>
-                </div>
-                <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
-                    <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-map-trifold"></i> Sub-Benua</span>
-                    <span id="detail-subregion" class="font-bold text-slate-800 text-right">Mendata...</span>
-                </div>
-                <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
-                    <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-users"></i> Populasi</span>
-                    <span id="detail-population" class="font-bold text-slate-800 text-right">Mendata...</span>
-                </div>
-                <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-2">
-                    <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap"><i class="ph-bold ph-bounding-box"></i> Luas Wilayah</span>
-                    <span id="detail-area" class="font-bold text-slate-800 text-right">Mendata...</span>
-                </div>
-                <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-4">
-                    <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap mt-0.5"><i class="ph-bold ph-money"></i> Mata Uang</span>
-                    <span id="detail-currencies" class="font-bold text-brand-primary text-right leading-snug">Mendata...</span>
-                </div>
-                <div class="flex justify-between items-start border-b border-slate-100 pb-3 gap-4">
-                    <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap mt-0.5"><i class="ph-bold ph-translate"></i> Bahasa Resmi</span>
-                    <span id="detail-languages" class="font-bold text-slate-800 text-right leading-snug">Mendata...</span>
-                </div>
-                <div class="flex justify-between items-start pt-1 gap-4">
-                    <span class="flex items-center gap-2 text-slate-400 whitespace-nowrap mt-0.5"><i class="ph-bold ph-arrows-merge"></i> Tetangga</span>
-                    <span id="detail-borders" class="font-bold text-brand-warning text-right leading-snug">Mendata...</span>
-                </div>
+                <h2 class="text-2xl font-black mb-2 text-slate-800" id="go-title">Game Over!</h2>
+                <p class="text-slate-500 mb-4 font-medium" id="go-desc">Skor yang Anda kumpulkan:</p>
+                <div class="text-6xl font-black text-brand-primary mb-8" id="final-score">0</div>
+                <button onclick="navigate('quiz-menu')" class="w-full bg-brand-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/30 btn-press">
+                    Kembali ke Menu
+                </button>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL FOKUS BENDERA (Zoom Besar) -->
-    <div id="modal-flag-zoom" class="hidden absolute inset-0 bg-black/95 z-[60] flex flex-col items-center justify-center p-4 transition-opacity animate-fadeIn">
-        <button onclick="closeFlagZoom()" class="absolute top-6 right-6 w-10 h-10 bg-white/10 text-white rounded-full flex items-center justify-center text-xl btn-press">
-            <i class="ph-bold ph-x"></i>
-        </button>
-        <img id="zoomed-flag" src="" class="max-w-full max-h-[80vh] object-contain rounded shadow-2xl">
-        <p class="text-white/50 text-sm mt-6 font-medium">Ketuk X untuk menutup</p>
-    </div>
-
-    <!-- MODAL GAME OVER -->
-    <div id="modal-gameover" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] flex items-center justify-center p-6">
-        <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl animate-pop relative overflow-hidden">
-            <div class="w-20 h-20 bg-brand-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="ph-fill ph-skull text-4xl text-brand-secondary"></i>
-            </div>
-            <h2 class="text-2xl font-black mb-2 text-slate-800" id="go-title">Game Over!</h2>
-            <p class="text-slate-500 mb-4 font-medium" id="go-desc">Skor yang Anda kumpulkan:</p>
-            <div class="text-6xl font-black text-brand-primary mb-8" id="final-score">0</div>
-            <button onclick="navigate('quiz-menu')" class="w-full bg-brand-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/30 btn-press">
-                Kembali ke Menu
-            </button>
-        </div>
     </div>
 
     <script>
-        // Data & State Utama
+        // PWA Manifest Injector (Bisa diinstall ke HP)
+        const manifest = {
+            name: "GeoGlimpse MVP",
+            short_name: "GeoGlimpse",
+            display: "standalone",
+            background_color: "#f8fafc",
+            theme_color: "#0ea5e9",
+            icons: [{"src": "https://cdn-icons-png.flaticon.com/512/814/814513.png", "sizes": "512x512", "type": "image/png"}]
+        };
+        const stringManifest = JSON.stringify(manifest);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestURL}">`);
+
+        // Data & State
         let countriesData = [];
         let score = 0, lives = 3, maxLives = 3;
-        let bestClassicScore = 0, bestCompareScore = 0;
+        let bestClassicScore = 0, bestCompareScore = 0, bestMapScore = 0;
         
-        // Pengaturan Kuis
-        let timeLimit = 0; // dalam detik
-        let timerInterval = null;
-        
-        // State Kuis Klasik
-        let activeQuizType = 'mixed'; 
-        let currentSpecificQuestionType = ''; 
-        let currentDifficulty = 'easy'; 
-        let currentCorrectAnswer = null;
-
-        // State Kuis Adu (Compare)
-        let isCompareMode = false;
-        let compareProperty = 'population'; 
-        let countryA = null, countryB = null;
-
-        // DOM Elements
-        const views = {
-            'loading': document.getElementById('view-loading'),
-            'explore-menu': document.getElementById('view-explore-menu'),
-            'explore-globe': document.getElementById('view-explore-globe'),
-            'explore-map': document.getElementById('view-explore-map'),
-            'explore-catalog': document.getElementById('view-explore-catalog'),
-            'quiz-menu': document.getElementById('view-quiz-menu'),
-            'quiz-play': document.getElementById('view-quiz-play'),
-            'quiz-compare': document.getElementById('view-quiz-compare'),
-            'profile': document.getElementById('view-profile')
-        };
-        const statusHeader = document.getElementById('game-status');
-        const toast = document.getElementById('feedback-toast');
-        const bottomNav = document.getElementById('bottom-nav');
-        const appContainer = document.getElementById('app-container');
+        let timeLimit = 0, timerInterval = null;
+        let activeQuizType = 'mixed', currentSpecificQuestionType = '', currentDifficulty = 'easy', currentCorrectAnswer = null;
+        let isCompareMode = false, compareProperty = 'population', countryA = null, countryB = null;
+        let audioEnabled = true;
 
         // Mengambil nama-nama border dari kode
         function getBorderNames(bordersArr) {
@@ -479,6 +477,53 @@
             }).join(', ');
         }
 
+        // --- SISTEM AUDIO (SINTESIS TANPA FILE EXTERNAL) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() { if(!audioCtx) audioCtx = new AudioContext(); if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        
+        function playTone(freq1, freq2, type, duration, vol=0.1) {
+            if(!audioEnabled) return; initAudio();
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq1, audioCtx.currentTime);
+            if(freq2) osc.frequency.exponentialRampToValueAtTime(freq2, audioCtx.currentTime + duration);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+        function playSfx(type) {
+            if(!audioEnabled) return;
+            if(type === 'pop') playTone(400, null, 'sine', 0.1, 0.05);
+            else if(type === 'correct') { playTone(523.25, 659.25, 'sine', 0.2, 0.1); setTimeout(()=>playTone(659.25, 1046.5, 'sine', 0.3, 0.1), 100); }
+            else if(type === 'wrong') playTone(150, 100, 'sawtooth', 0.4, 0.1);
+        }
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('btn-audio-toggle');
+            if(audioEnabled) {
+                btn.innerHTML = '<i class="ph-fill ph-speaker-high"></i> Suara On';
+                btn.classList.replace('bg-slate-200', 'bg-brand-primary/10'); btn.classList.replace('text-slate-500', 'text-brand-primary');
+                playSfx('pop');
+            } else {
+                btn.innerHTML = '<i class="ph-fill ph-speaker-slash"></i> Suara Off';
+                btn.classList.replace('bg-brand-primary/10', 'bg-slate-200'); btn.classList.replace('text-brand-primary', 'text-slate-500');
+            }
+        }
+        document.addEventListener('click', (e) => { if(e.target.closest('.btn-press')) playSfx('pop'); });
+
+        // DOM
+        const views = {
+            'loading': document.getElementById('view-loading'), 'explore-menu': document.getElementById('view-explore-menu'),
+            'explore-globe': document.getElementById('view-explore-globe'), 'explore-map': document.getElementById('view-explore-map'),
+            'explore-catalog': document.getElementById('view-explore-catalog'), 'quiz-menu': document.getElementById('view-quiz-menu'),
+            'quiz-play': document.getElementById('view-quiz-play'), 'quiz-compare': document.getElementById('view-quiz-compare'),
+            'quiz-map-guess': document.getElementById('view-quiz-map-guess'), 'quiz-map-find': document.getElementById('view-quiz-map-find'),
+            'profile': document.getElementById('view-profile')
+        };
+        const statusHeader = document.getElementById('game-status'), toast = document.getElementById('feedback-toast'), bottomNav = document.getElementById('bottom-nav');
+        const appContainer = document.getElementById('app-container');
+
         // Fetch Data
         async function fetchCountries() {
             try {
@@ -486,509 +531,298 @@
                     fetch('https://restcountries.com/v3.1/all?fields=name,cca3,capital,flags,region,subregion,population,area,latlng,borders'),
                     fetch('https://restcountries.com/v3.1/all?fields=cca3,currencies,languages')
                 ]);
-                
-                const data1 = await res1.json();
-                const data2 = await res2.json();
-
-                const mergedData = data1.map(c1 => {
-                    const c2 = data2.find(c => c.cca3 === c1.cca3) || {};
-                    return { ...c1, ...c2 };
-                });
-
-                countriesData = mergedData.filter(c => 
-                    c.capital && c.capital.length > 0 && 
-                    c.capital[0] !== "undefined" && c.capital[0].trim() !== "" &&
-                    c.flags && c.flags.svg
-                );
-            } catch (e) { 
-                console.error("Gagal menarik data:", e); 
-            }
+                const data1 = await res1.json(), data2 = await res2.json();
+                countriesData = data1.map(c1 => ({ ...c1, ...(data2.find(c => c.cca3 === c1.cca3) || {}) }))
+                    .filter(c => c.capital && c.capital.length > 0 && c.capital[0] !== "undefined" && c.flags && c.flags.svg && c.latlng);
+            } catch (e) { console.error(e); }
         }
 
-        // --- SISTEM NAVIGASI ---
-        window.onload = async () => {
-            history.replaceState({ view: 'quiz-menu' }, '');
-            await fetchCountries();
-            populateCatalog();
-            renderView('quiz-menu'); 
-        };
+        // Navigasi
+        window.onload = async () => { history.replaceState({ view: 'quiz-menu' }, ''); await fetchCountries(); populateCatalog(); renderView('quiz-menu'); };
+        window.onpopstate = (e) => { if (e.state && e.state.view) renderView(e.state.view, false); };
 
-        window.onpopstate = (e) => {
-            if (e.state && e.state.view) {
-                renderView(e.state.view, false);
-            }
-        };
-
-        function navigate(viewId) {
-            history.pushState({ view: viewId }, '');
-            renderView(viewId, true);
-        }
-
+        function navigate(viewId) { history.pushState({ view: viewId }, ''); renderView(viewId, true); }
         function renderView(viewId) {
-            stopTimer(); 
-            isCompareMode = (viewId === 'quiz-compare');
-            
-            Object.values(views).forEach(v => v.classList.add('hidden'));
-            toast.classList.add('hidden'); 
+            stopTimer(); isCompareMode = (viewId === 'quiz-compare');
+            Object.values(views).forEach(v => v.classList.add('hidden')); toast.classList.add('hidden'); 
             document.getElementById('modal-gameover').classList.add('hidden');
-
+            
             if (views[viewId]) views[viewId].classList.remove('hidden');
 
-            if (viewId === 'quiz-play' || viewId === 'quiz-compare') {
-                statusHeader.classList.remove('hidden');
-                bottomNav.classList.add('hidden');
+            if (viewId.startsWith('quiz-') && viewId !== 'quiz-menu') {
+                statusHeader.classList.remove('hidden'); bottomNav.classList.add('hidden');
             } else {
-                statusHeader.classList.add('hidden');
-                bottomNav.classList.remove('hidden');
+                statusHeader.classList.add('hidden'); bottomNav.classList.remove('hidden');
             }
 
-            let activeTab = '';
-            if(viewId.includes('explore')) activeTab = 'explore';
-            else if(viewId.includes('quiz')) activeTab = 'quiz';
-            else if(viewId === 'profile') activeTab = 'profile';
-
+            let activeTab = viewId.includes('explore') ? 'explore' : (viewId.includes('quiz') ? 'quiz' : 'profile');
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                if(btn.dataset.tab === activeTab) {
-                    btn.classList.add('text-brand-primary'); btn.classList.remove('text-slate-400');
-                } else {
-                    btn.classList.remove('text-brand-primary'); btn.classList.add('text-slate-400');
-                }
+                if(btn.dataset.tab === activeTab) { btn.classList.add('text-brand-primary'); btn.classList.remove('text-slate-400'); } 
+                else { btn.classList.remove('text-brand-primary'); btn.classList.add('text-slate-400'); }
             });
 
             if(viewId === 'explore-globe') setTimeout(initGlobe, 200);
-            if(viewId === 'explore-map') setTimeout(initLeafletMap, 200);
+            if(viewId === 'explore-map') setTimeout(()=>initLeafletMap('explore'), 200);
         }
 
         function setDifficulty(level) {
             currentDifficulty = level;
-            ['easy','medium','hard'].forEach(l => {
-                document.getElementById(`btn-diff-${l}`).className = "flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 transition-all";
-            });
-            const activeBtn = document.getElementById(`btn-diff-${level}`);
-            activeBtn.classList.remove('text-slate-400');
-            if(level === 'easy') activeBtn.classList.add('bg-white','shadow','text-brand-primary');
-            if(level === 'medium') activeBtn.classList.add('bg-white','shadow','text-amber-500');
-            if(level === 'hard') activeBtn.classList.add('bg-white','shadow','text-brand-secondary');
+            ['easy','medium','hard'].forEach(l => document.getElementById(`btn-diff-${l}`).className = "flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 transition-all btn-press");
+            const btn = document.getElementById(`btn-diff-${level}`);
+            btn.classList.remove('text-slate-400');
+            if(level==='easy') btn.classList.add('bg-white','shadow','text-brand-primary');
+            if(level==='medium') btn.classList.add('bg-white','shadow','text-amber-500');
+            if(level==='hard') btn.classList.add('bg-white','shadow','text-brand-secondary');
         }
-
         function getRandomItems(arr, n) { return [...arr].sort(() => 0.5 - Math.random()).slice(0, n); }
 
-        // --- SISTEM TIMER ---
-        function stopTimer() {
-            if(timerInterval) clearInterval(timerInterval);
-            document.getElementById('timer-container').classList.add('hidden');
-        }
-
-        function runTimer() {
+        // --- SISTEM TIMER UMUM ---
+        function stopTimer() { if(timerInterval) clearInterval(timerInterval); document.querySelectorAll('[id^=timer-container]').forEach(el=>el.classList.add('hidden')); }
+        function runTimer(context) {
             if(timeLimit <= 0) return;
-            const tContainer = document.getElementById('timer-container');
-            const tBar = document.getElementById('timer-bar');
-            tContainer.classList.remove('hidden');
-            
-            tBar.style.transition = 'none';
-            tBar.style.width = '100%';
-            
+            const container = document.getElementById(`timer-container-${context}`), bar = document.getElementById(`timer-bar-${context}`);
+            if(!container) return;
+            container.classList.remove('hidden'); bar.style.transition = 'none'; bar.style.width = '100%';
             setTimeout(() => {
-                let timeLeft = timeLimit;
-                tBar.style.transition = 'width 1s linear';
-                
+                let tl = timeLimit; bar.style.transition = 'width 1s linear';
                 timerInterval = setInterval(() => {
-                    timeLeft--;
-                    let pct = (timeLeft / timeLimit) * 100;
-                    tBar.style.width = pct + '%';
-                    
-                    if(timeLeft <= 0) {
-                        stopTimer();
-                        handleTimeOut();
-                    }
+                    tl--; bar.style.width = (tl/timeLimit*100) + '%';
+                    if(tl <= 0) { stopTimer(); handleTimeOut(context); }
                 }, 1000);
             }, 50);
         }
-
-        function handleTimeOut() {
-            const allBtns = document.querySelectorAll('#options-container button');
-            allBtns.forEach(b => b.onclick = null);
-            
+        function handleTimeOut(context) {
             appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 400);
-            lives--; updateStatsDisplay();
-            
-            showToast(false);
-            allBtns.forEach(b => {
-                if(b.dataset.correct === "true") {
-                    b.classList.add('bg-brand-success/20', 'border-brand-success', 'border-dashed');
-                }
-            });
-            setTimeout(() => nextQuestion(), 1500);
-        }
-
-        // --- LOGIKA KUIS KLASIK ---
-        function startQuiz(mode) {
-            const setLives = parseInt(document.getElementById('setting-lives').value);
-            const setTime = parseInt(document.getElementById('setting-time').value);
-            
-            maxLives = setLives; lives = setLives;
-            timeLimit = setTime;
-            score = 0; updateStatsDisplay();
-
-            if(mode === 'population' || mode === 'area') {
-                activeQuizType = mode;
-                navigate('quiz-compare');
-                startCompareQuiz(mode);
-            } else {
-                activeQuizType = mode;
-                navigate('quiz-play');
-                nextQuestion();
+            lives--; updateStatsDisplay(); showToast(false);
+            if(context === 'classic') {
+                const btns = document.querySelectorAll('#options-container button');
+                btns.forEach(b => { b.onclick = null; if(b.dataset.correct === "true") b.classList.add('bg-brand-success/20', 'border-brand-success', 'border-dashed'); });
+                setTimeout(nextQuestion, 1500);
+            } else if(context === 'map-guess') {
+                document.querySelectorAll('#map-guess-options button').forEach(b => b.onclick = null);
+                setTimeout(nextMapGuess, 1500);
+            } else if(context === 'map-find') {
+                setTimeout(nextMapFind, 1500);
             }
         }
 
+        // --- LOGIKA UTAMA PERMAINAN ---
+        function startQuiz(mode) {
+            maxLives = parseInt(document.getElementById('setting-lives').value); lives = maxLives;
+            timeLimit = parseInt(document.getElementById('setting-time').value);
+            score = 0; updateStatsDisplay(); activeQuizType = mode;
+
+            if(mode === 'population' || mode === 'area') { navigate('quiz-compare'); startCompareQuiz(mode); } 
+            else if(mode === 'map-guess') { navigate('quiz-map-guess'); setTimeout(nextMapGuess, 200); }
+            else if(mode === 'map-find') { navigate('quiz-map-find'); setTimeout(nextMapFind, 200); }
+            else { navigate('quiz-play'); nextQuestion(); }
+        }
+
+        // 1. Kuis Klasik
         function nextQuestion() {
-            stopTimer(); 
-            if (lives <= 0) return gameOver();
-            
-            const container = document.getElementById('options-container');
-            container.innerHTML = ''; toast.classList.add('hidden'); 
+            stopTimer(); if(lives <= 0) return gameOver();
+            const container = document.getElementById('options-container'); container.innerHTML = '';
             
             let qType = activeQuizType === 'mixed' ? ['capital', 'flagToCountry', 'countryToFlag'][Math.floor(Math.random() * 3)] : activeQuizType;
-            currentSpecificQuestionType = qType;
+            currentSpecificQuestionType = qType; currentCorrectAnswer = getRandomItems(countriesData, 1)[0];
             
-            currentCorrectAnswer = getRandomItems(countriesData, 1)[0];
-            let pool = [];
-            if (currentDifficulty === 'medium') pool = countriesData.filter(c => c.region === currentCorrectAnswer.region && c !== currentCorrectAnswer);
-            else if (currentDifficulty === 'hard') pool = countriesData.filter(c => c.subregion === currentCorrectAnswer.subregion && c !== currentCorrectAnswer);
+            let pool = countriesData.filter(c => currentDifficulty === 'medium' ? c.region === currentCorrectAnswer.region : (currentDifficulty === 'hard' ? c.subregion === currentCorrectAnswer.subregion : true));
+            if (pool.length < 4) pool = countriesData;
             
-            if (pool.length < 3) pool = countriesData.filter(c => c.region === currentCorrectAnswer.region && c !== currentCorrectAnswer);
-            if (pool.length < 3) pool = countriesData.filter(c => c !== currentCorrectAnswer); 
-
-            const options = getRandomItems([currentCorrectAnswer, ...getRandomItems(pool, 3)], 4);
-            const qHeader = document.getElementById('question-header');
-            qHeader.innerHTML = '';
+            const options = getRandomItems([currentCorrectAnswer, ...getRandomItems(pool.filter(c=>c!==currentCorrectAnswer), 3)], 4);
+            const qHeader = document.getElementById('question-header'); qHeader.innerHTML = '';
 
             if (qType === 'capital') {
-                qHeader.innerHTML = `
-                    <span class="text-sm font-bold text-slate-500 mb-1">Apa ibukota dari</span>
-                    <span class="text-brand-primary font-black text-2xl leading-tight text-center mb-3">${currentCorrectAnswer.name.common}</span>
-                    <img src="${currentCorrectAnswer.flags.svg}" class="w-20 h-14 object-contain rounded shadow-sm border border-slate-100 mb-2">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest bg-slate-100 px-2 py-1 rounded-md">${currentCorrectAnswer.subregion || '-'}</span>
-                `;
+                qHeader.innerHTML = `<span class="text-sm font-bold text-slate-500 mb-1">Apa ibukota dari</span><span class="text-brand-primary font-black text-2xl leading-tight text-center mb-3">${currentCorrectAnswer.name.common}</span><img src="${currentCorrectAnswer.flags.svg}" class="w-20 h-14 object-contain rounded shadow-sm border border-slate-100 mb-2"><span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest bg-slate-100 px-2 py-1 rounded-md">${currentCorrectAnswer.subregion || '-'}</span>`;
                 options.forEach(c => createOptBtn(c, 'text-capital', container));
             } else if (qType === 'flagToCountry') {
-                qHeader.innerHTML = `
-                    <span class="text-sm font-bold text-slate-500 mb-3">Bendera negara manakah ini?</span>
-                    <img src="${currentCorrectAnswer.flags.svg}" class="w-full max-h-32 object-contain drop-shadow-md rounded border border-slate-100">
-                `;
+                qHeader.innerHTML = `<span class="text-sm font-bold text-slate-500 mb-3">Bendera negara manakah ini?</span><img src="${currentCorrectAnswer.flags.svg}" class="w-full max-h-32 object-contain drop-shadow-md rounded border border-slate-100 mb-2">`;
                 options.forEach(c => createOptBtn(c, 'text-country', container));
             } else {
-                qHeader.innerHTML = `
-                    <span class="text-sm font-bold text-slate-500 mb-1">Pilih bendera dari</span>
-                    <span class="text-brand-primary font-black text-2xl text-center leading-tight mb-2">${currentCorrectAnswer.name.common}</span>
-                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest bg-slate-100 px-2 py-1 rounded-md">${currentCorrectAnswer.subregion || '-'}</span>
-                `;
+                qHeader.innerHTML = `<span class="text-sm font-bold text-slate-500 mb-1">Pilih bendera dari</span><span class="text-brand-primary font-black text-2xl text-center leading-tight mb-2">${currentCorrectAnswer.name.common}</span><span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest bg-slate-100 px-2 py-1 rounded-md">${currentCorrectAnswer.subregion || '-'}</span>`;
                 options.forEach(c => createOptBtn(c, 'image-flag', container));
             }
-            
             views['quiz-play'].classList.remove('animate-pop'); void views['quiz-play'].offsetWidth; views['quiz-play'].classList.add('animate-pop');
-            runTimer(); 
+            runTimer('classic'); 
         }
 
         function createOptBtn(cObj, type, container) {
-            const btn = document.createElement('button');
-            const isCorrect = (cObj === currentCorrectAnswer);
+            const btn = document.createElement('button'), isCorrect = (cObj === currentCorrectAnswer);
             btn.dataset.correct = isCorrect; 
             btn.className = "w-full bg-white border-2 border-slate-100 hover:border-brand-primary/50 text-slate-700 font-bold p-2 sm:p-3 rounded-2xl transition-all btn-press flex flex-col items-center justify-center group relative overflow-hidden min-h-[90px] shadow-sm";
             if (type === 'text-capital') btn.innerHTML = `<span class="text-sm text-center leading-tight w-full px-1">${cObj.capital[0]}</span>`;
             else if (type === 'text-country') btn.innerHTML = `<span class="text-sm text-center leading-tight w-full px-1">${cObj.name.common}</span>`;
             else btn.innerHTML = `<img src="${cObj.flags.svg}" class="w-full h-full max-h-[70px] object-contain p-1 drop-shadow-sm">`;
-            btn.onclick = () => handleClassicAns(btn, cObj, isCorrect);
+            btn.onclick = () => {
+                stopTimer(); document.querySelectorAll('#options-container button').forEach(b => b.onclick = null);
+                if (isCorrect) { btn.classList.add('bg-brand-success/20', 'border-brand-success'); showToast(true); score+=10; updateStatsDisplay(); setTimeout(nextQuestion, 1000); } 
+                else { btn.classList.add('bg-brand-secondary/20', 'border-brand-secondary'); appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 400); lives--; updateStatsDisplay(); showToast(false); document.querySelector('#options-container button[data-correct="true"]').classList.add('bg-brand-success/20', 'border-brand-success', 'border-dashed'); setTimeout(nextQuestion, 1500); }
+            };
             container.appendChild(btn);
         }
 
-        function handleClassicAns(btn, cObj, isCorrect) {
-            stopTimer(); 
-            const allBtns = document.querySelectorAll('#options-container button');
-            allBtns.forEach(b => b.onclick = null);
+        // 2. Kuis Adu Statistik
+        function startCompareQuiz(type) { compareProperty = type; countryA = getRandomItems(countriesData, 1)[0]; countryB = getNextCompare(countryA, countriesData); document.getElementById('compare-hint').classList.remove('hidden'); renderCompareUI(); }
+        function getNextCompare(baseC, poolData) { let pool = poolData.filter(c => c.cca3 !== baseC.cca3); return getRandomItems(pool, 1)[0]; }
+        function renderCompareUI() {
+            document.getElementById('comp-flag-a').src = countryA.flags.svg; document.getElementById('comp-name-a').innerText = countryA.name.common; document.getElementById('comp-sub-a').innerText = countryA.subregion || '-'; document.getElementById('comp-type-a').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah'; document.getElementById('comp-val-a').innerText = compareProperty === 'population' ? countryA.population.toLocaleString('id-ID') : countryA.area.toLocaleString('id-ID') + " km²";
+            document.getElementById('comp-flag-b').src = countryB.flags.svg; document.getElementById('comp-name-b').innerText = countryB.name.common; document.getElementById('comp-sub-b').innerText = countryB.subregion || '-';
+            document.getElementById('comp-guess-b').classList.remove('hidden'); document.getElementById('comp-result-b').classList.add('hidden');
+            ['compare-top','compare-bottom'].forEach(id => { document.getElementById(id).disabled = false; document.getElementById(id).classList.remove('animate-slide-down', 'animate-slide-up'); void document.getElementById(id).offsetWidth; });
+            document.getElementById('compare-top').classList.add('animate-slide-down'); document.getElementById('compare-bottom').classList.add('animate-slide-up');
+        }
+        function handleCompareAnswer(chosenArea) {
+            document.getElementById('compare-hint').classList.add('hidden'); document.getElementById('compare-top').disabled = true; document.getElementById('compare-bottom').disabled = true;
+            document.getElementById('comp-guess-b').classList.add('hidden'); const resB = document.getElementById('comp-result-b'); resB.classList.remove('hidden'); resB.classList.add('animate-pop');
+            const vA = countryA[compareProperty], vB = countryB[compareProperty], isCorrect = (chosenArea === 'A' && vA >= vB) || (chosenArea === 'B' && vB >= vA);
+            document.getElementById('comp-type-b').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah'; document.getElementById('comp-val-b').innerText = compareProperty === 'population' ? vB.toLocaleString('id-ID') : vB.toLocaleString('id-ID') + " km²";
+            const valText = document.getElementById('comp-val-b');
+            if(isCorrect) { valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-success drop-shadow-lg"; score+=15; updateStatsDisplay(); showToast(true); } 
+            else { valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-secondary drop-shadow-lg"; appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 400); lives--; updateStatsDisplay(); showToast(false); }
+            setTimeout(() => { if(lives<=0 && !isCorrect) gameOver(); else { countryA = countryB; countryB = getNextCompare(countryA, countriesData); renderCompareUI(); } }, 1200); 
+        }
+
+        // 3. Kuis Tebak Lokasi Peta (Geoguessr Lite)
+        let mapGuessLeaflet = null;
+        function nextMapGuess() {
+            stopTimer(); if(lives <= 0) return gameOver();
+            currentCorrectAnswer = getRandomItems(countriesData, 1)[0];
+            let pool = countriesData.filter(c => c !== currentCorrectAnswer && c.region === currentCorrectAnswer.region);
+            if(pool.length<3) pool = countriesData.filter(c=>c!==currentCorrectAnswer);
+            const options = getRandomItems([currentCorrectAnswer, ...getRandomItems(pool, 3)], 4);
             
-            if (isCorrect) {
-                btn.classList.add('bg-brand-success/20', 'border-brand-success', 'ring-4', 'ring-brand-success/30');
-                showToast(true);
-                score += 10; updateStatsDisplay(); setTimeout(nextQuestion, 1000);
-            } else {
-                btn.classList.add('bg-brand-secondary/20', 'border-brand-secondary');
-                appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 400);
-                lives--; updateStatsDisplay();
-                showToast(false);
+            if(!mapGuessLeaflet) {
+                mapGuessLeaflet = L.map('map-guess-container', {zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false});
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 9}).addTo(mapGuessLeaflet);
+            }
+            mapGuessLeaflet.setView([currentCorrectAnswer.latlng[0], currentCorrectAnswer.latlng[1]], 5);
+            
+            // Buat opsi jawaban
+            const container = document.getElementById('map-guess-options'); container.innerHTML = '';
+            options.forEach(c => {
+                const btn = document.createElement('button'); btn.className = "bg-slate-50 border-2 border-slate-100 font-bold p-3 rounded-xl btn-press text-sm text-slate-700 shadow-sm";
+                btn.innerText = c.name.common;
+                btn.onclick = () => {
+                    stopTimer(); Array.from(container.children).forEach(b=>b.onclick=null);
+                    if(c === currentCorrectAnswer) { btn.classList.add('bg-brand-success/20','border-brand-success'); showToast(true); score+=20; updateStatsDisplay(); setTimeout(nextMapGuess, 1000); }
+                    else { btn.classList.add('bg-brand-secondary/20','border-brand-secondary'); showToast(false); lives--; updateStatsDisplay(); appContainer.classList.add('animate-shake'); setTimeout(()=>appContainer.classList.remove('animate-shake'),400); Array.from(container.children).find(b=>b.innerText===currentCorrectAnswer.name.common).classList.add('bg-brand-success/20','border-brand-success','border-dashed'); setTimeout(nextMapGuess, 1500); }
+                };
+                container.appendChild(btn);
+            });
+            runTimer('map-guess');
+        }
+
+        // 4. Kuis Cari di Peta
+        let mapFindLeaflet = null, findMarkers = [];
+        function nextMapFind() {
+            stopTimer(); if(lives <= 0) return gameOver();
+            currentCorrectAnswer = getRandomItems(countriesData, 1)[0];
+            document.getElementById('map-find-target').innerText = currentCorrectAnswer.name.common;
+            
+            if(!mapFindLeaflet) {
+                mapFindLeaflet = L.map('map-find-container', {zoomControl: false}).setView([20,0], 2);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(mapFindLeaflet);
+            }
+            
+            // Perbaikan logic menghapus marker Leaflet: ambil properties .marker di dalam object findMarkers
+            findMarkers.forEach(m => mapFindLeaflet.removeLayer(m.marker)); findMarkers = [];
+            
+            countriesData.forEach(c => {
+                const isTarget = (c === currentCorrectAnswer);
+                const icon = L.divIcon({className: 'custom-div-icon', html: `<div class="w-4 h-4 bg-brand-primary/80 border border-white rounded-full shadow cursor-pointer hover:scale-150 transition-transform"></div>`, iconSize: [16,16]});
+                const marker = L.marker([c.latlng[0], c.latlng[1]], {icon: icon}).addTo(mapFindLeaflet);
                 
-                allBtns.forEach(b => {
-                    if(b.dataset.correct === "true") {
-                        b.classList.add('bg-brand-success/20', 'border-brand-success', 'border-dashed');
+                marker.on('click', () => {
+                    stopTimer(); 
+                    // Perbaikan logic mematikan event klik pada marker
+                    findMarkers.forEach(m => m.marker.off('click'));
+                    
+                    if(isTarget) {
+                        marker.setIcon(L.divIcon({className:'', html: `<div class="w-6 h-6 bg-brand-success border-2 border-white rounded-full animate-bounce"></div>`, iconSize:[24,24]}));
+                        showToast(true); score+=25; updateStatsDisplay(); setTimeout(nextMapFind, 1500);
+                    } else {
+                        marker.setIcon(L.divIcon({className:'', html: `<div class="w-4 h-4 bg-brand-secondary border-2 border-white rounded-full"></div>`, iconSize:[16,16]}));
+                        // Tunjukkan yang benar
+                        const correctMarker = findMarkers.find(m => m.isCorrectTarget);
+                        if(correctMarker) correctMarker.marker.setIcon(L.divIcon({className:'', html: `<div class="w-6 h-6 bg-brand-success border-2 border-white rounded-full animate-pulse shadow-[0_0_15px_#10b981]"></div>`, iconSize:[24,24]}));
+                        appContainer.classList.add('animate-shake'); setTimeout(()=>appContainer.classList.remove('animate-shake'),400);
+                        lives--; updateStatsDisplay(); showToast(false); setTimeout(nextMapFind, 2000);
                     }
                 });
-                
-                setTimeout(nextQuestion, 1500);
-            }
+                findMarkers.push({marker, isCorrectTarget: isTarget});
+            });
+            mapFindLeaflet.setView([20,0], 2);
+            runTimer('map-find');
         }
+        function skipMapFind() { lives--; updateStatsDisplay(); stopTimer(); showToast(false); setTimeout(nextMapFind, 500); }
 
-        // --- LOGIKA ADU STATISTIK (HIGHER/LOWER) - King of the Hill ---
-        function startCompareQuiz(type) {
-            const validData = countriesData.filter(c => typeof c[compareProperty] === 'number' && c[compareProperty] > 0);
-            countryA = getRandomItems(validData, 1)[0];
-            countryB = getNextCompare(countryA, validData);
-            document.getElementById('compare-hint').classList.remove('hidden');
-            renderCompareUI();
-        }
-
-        function getNextCompare(baseC, poolData) {
-            let pool = poolData.filter(c => c.cca3 !== baseC.cca3);
-            let val = baseC[compareProperty];
-
-            if(currentDifficulty === 'hard') {
-                if(Math.random() < 0.80) {
-                    let close = pool.filter(c => c[compareProperty] >= val * 0.7 && c[compareProperty] <= val * 1.3);
-                    if(close.length > 0) pool = close;
-                }
-            } else if(currentDifficulty === 'medium') {
-                if(Math.random() < 0.85) {
-                    let close = pool.filter(c => c[compareProperty] >= val / 3 && c[compareProperty] <= val * 3);
-                    if(close.length > 0) pool = close;
-                }
-            }
-            return getRandomItems(pool, 1)[0];
-        }
-
-        function renderCompareUI() {
-            document.getElementById('comp-flag-a').src = countryA.flags.svg;
-            document.getElementById('comp-name-a').innerText = countryA.name.common;
-            document.getElementById('comp-sub-a').innerText = countryA.subregion || '-';
-            document.getElementById('comp-type-a').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah';
-            document.getElementById('comp-val-a').innerText = compareProperty === 'population' ? countryA.population.toLocaleString('id-ID') : countryA.area.toLocaleString('id-ID') + " km²";
-            
-            document.getElementById('comp-flag-b').src = countryB.flags.svg;
-            document.getElementById('comp-name-b').innerText = countryB.name.common;
-            document.getElementById('comp-sub-b').innerText = countryB.subregion || '-';
-            
-            document.getElementById('comp-guess-b').classList.remove('hidden');
-            document.getElementById('comp-result-b').classList.add('hidden');
-            document.getElementById('comp-result-b').classList.remove('animate-pop');
-            
-            document.getElementById('compare-top').disabled = false;
-            document.getElementById('compare-bottom').disabled = false;
-
-            document.getElementById('compare-top').classList.remove('animate-slide-down'); void document.getElementById('compare-top').offsetWidth; document.getElementById('compare-top').classList.add('animate-slide-down');
-            document.getElementById('compare-bottom').classList.remove('animate-slide-up'); void document.getElementById('compare-bottom').offsetWidth; document.getElementById('compare-bottom').classList.add('animate-slide-up');
-        }
-
-        function handleCompareAnswer(chosenArea) {
-            document.getElementById('compare-hint').classList.add('hidden');
-
-            document.getElementById('compare-top').disabled = true;
-            document.getElementById('compare-bottom').disabled = true;
-
-            document.getElementById('comp-guess-b').classList.add('hidden');
-            const resB = document.getElementById('comp-result-b');
-            resB.classList.remove('hidden'); resB.classList.add('animate-pop');
-
-            const valA = countryA[compareProperty];
-            const valB = countryB[compareProperty];
-            
-            const isCorrect = (chosenArea === 'A' && valA >= valB) || (chosenArea === 'B' && valB >= valA);
-
-            document.getElementById('comp-type-b').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah';
-            document.getElementById('comp-val-b').innerText = compareProperty === 'population' ? valB.toLocaleString('id-ID') : valB.toLocaleString('id-ID') + " km²";
-            const valText = document.getElementById('comp-val-b');
-
-            if(isCorrect) {
-                valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-success drop-shadow-lg";
-                score += 15; updateStatsDisplay();
-                showToast(true);
-
-            } else {
-                valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-secondary drop-shadow-lg";
-                appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 400);
-                lives--; updateStatsDisplay();
-                showToast(false);
-            }
-
-            setTimeout(() => {
-                if(lives <= 0 && !isCorrect) { 
-                    gameOver(); 
-                } else {
-                    countryA = countryB; 
-                    const validData = countriesData.filter(c => typeof c[compareProperty] === 'number' && c[compareProperty] > 0);
-                    countryB = getNextCompare(countryA, validData);
-                    renderCompareUI();
-                }
-            }, 1200); 
-        }
-
-        // --- SISTEM UTILITY (TOAST ICON SAJA) ---
+        // --- SISTEM UTILITY ---
         function showToast(isCorrect) {
-            toast.innerHTML = isCorrect 
-                ? '<i class="ph-bold ph-check text-6xl text-white drop-shadow-md"></i>' 
-                : '<i class="ph-bold ph-x text-6xl text-white drop-shadow-md"></i>';
-            
-            toast.className = `absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[100] rounded-full w-28 h-28 shadow-2xl flex items-center justify-center animate-pop backdrop-blur-md ${isCorrect ? 'bg-brand-success/90' : 'bg-brand-secondary/90'}`;
-
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 1000);
+            playSfx(isCorrect ? 'correct' : 'wrong');
+            toast.innerHTML = isCorrect ? '<i class="ph-bold ph-check text-6xl text-white drop-shadow-md"></i>' : '<i class="ph-bold ph-x text-6xl text-white drop-shadow-md"></i>';
+            toast.className = `absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[100] rounded-full w-24 h-24 shadow-2xl flex items-center justify-center animate-pop backdrop-blur-md ${isCorrect ? 'bg-brand-success/90 shadow-brand-success/50' : 'bg-brand-secondary/90 shadow-brand-secondary/50'}`;
+            setTimeout(() => toast.classList.add('hidden'), 1000);
         }
 
         function updateStatsDisplay() {
-            document.getElementById('score-display').innerText = score;
-            document.getElementById('lives-display').innerText = lives;
-            if(isCompareMode) {
-                if(score > bestCompareScore) bestCompareScore = score;
-                document.getElementById('profile-compare-score').innerText = bestCompareScore;
-            } else {
-                if(score > bestClassicScore) bestClassicScore = score;
-                document.getElementById('profile-highscore').innerText = bestClassicScore;
-            }
+            document.getElementById('score-display').innerText = score; document.getElementById('lives-display').innerText = lives;
+            if(activeQuizType === 'population' || activeQuizType === 'area') { if(score>bestCompareScore) bestCompareScore=score; document.getElementById('profile-compare-score').innerText = bestCompareScore; }
+            else if(activeQuizType.includes('map')) { if(score>bestMapScore) bestMapScore=score; document.getElementById('profile-map-score').innerText = bestMapScore; }
+            else { if(score>bestClassicScore) bestClassicScore=score; document.getElementById('profile-highscore').innerText = bestClassicScore; }
         }
+        
         function gameOver() { 
-            stopTimer();
+            stopTimer(); 
             document.getElementById('final-score').innerText = score; 
             document.getElementById('modal-gameover').classList.remove('hidden'); 
         }
 
-        // --- EKSPLORASI ---
+        // --- EKSPLORASI (KATALOG & PETA) ---
         function populateCatalog() {
-            const grid = document.getElementById('catalog-grid');
-            const sortVal = document.getElementById('catalog-sort').value;
-            grid.innerHTML = '';
-            
+            const grid = document.getElementById('catalog-grid'), sortVal = document.getElementById('catalog-sort').value; grid.innerHTML = '';
             let sorted = [...countriesData];
-            if(sortVal === 'name-asc') sorted.sort((a,b) => a.name.common.localeCompare(b.name.common));
-            else if(sortVal === 'pop-desc') sorted.sort((a,b) => (b.population || 0) - (a.population || 0));
-            else if(sortVal === 'pop-asc') sorted.sort((a,b) => (a.population || 0) - (b.population || 0));
-            else if(sortVal === 'area-desc') sorted.sort((a,b) => (b.area || 0) - (a.area || 0));
-            else if(sortVal === 'area-asc') sorted.sort((a,b) => (a.area || 0) - (b.area || 0));
-
+            if(sortVal==='name-asc') sorted.sort((a,b)=>a.name.common.localeCompare(b.name.common)); else if(sortVal==='pop-desc') sorted.sort((a,b)=>(b.population||0)-(a.population||0)); else if(sortVal==='pop-asc') sorted.sort((a,b)=>(a.population||0)-(b.population||0)); else if(sortVal==='area-desc') sorted.sort((a,b)=>(b.area||0)-(a.area||0)); else if(sortVal==='area-asc') sorted.sort((a,b)=>(a.area||0)-(b.area||0));
             sorted.slice(0, 50).forEach((c) => {
-                const card = document.createElement('div');
-                card.className = "bg-white p-3 rounded-2xl shadow-sm border border-slate-50 flex flex-col items-center text-center btn-press cursor-pointer hover:border-brand-primary/30 transition-colors";
+                const card = document.createElement('div'); card.className = "bg-white p-3 rounded-2xl shadow-sm border border-slate-50 flex flex-col items-center text-center btn-press cursor-pointer hover:border-brand-primary/30 transition-colors";
                 card.onclick = () => openDetail(c);
-                card.innerHTML = `
-                    <img src="${c.flags.svg}" class="w-full h-16 object-contain rounded mb-2 bg-slate-50 p-1 border border-slate-100">
-                    <span class="font-bold text-xs leading-tight text-slate-700">${c.name.common}</span>
-                    <span class="text-[10px] font-medium text-slate-400">${c.capital ? c.capital[0] : '-'}</span>
-                `;
+                card.innerHTML = `<img src="${c.flags.svg}" class="w-full h-16 object-contain rounded mb-2 bg-slate-50 p-1 border border-slate-100"><span class="font-bold text-xs leading-tight text-slate-700">${c.name.common}</span><span class="text-[10px] font-medium text-slate-400">${c.capital?c.capital[0]:'-'}</span>`;
                 grid.appendChild(card);
             });
         }
 
         function openDetail(c) {
-            document.getElementById('detail-flag').src = c.flags.svg;
-            document.getElementById('detail-name-common').innerText = c.name.common;
-            document.getElementById('detail-name-official').innerText = c.name.official || "-";
-            document.getElementById('detail-capital').innerText = c.capital ? c.capital[0] : "-";
-            document.getElementById('detail-region').innerText = c.region || "-";
-            document.getElementById('detail-subregion').innerText = c.subregion || "-";
-            document.getElementById('detail-population').innerText = c.population ? c.population.toLocaleString('id-ID') + " Jiwa" : "-";
-            document.getElementById('detail-area').innerText = c.area ? c.area.toLocaleString('id-ID') + " km²" : "-";
-            document.getElementById('detail-currencies').innerText = c.currencies ? Object.values(c.currencies).map(x => `${x.name} (${x.symbol})`).join(', ') : "-";
-            document.getElementById('detail-languages').innerText = c.languages ? Object.values(c.languages).join(', ') : "-";
-            document.getElementById('detail-borders').innerText = getBorderNames(c.borders);
+            document.getElementById('detail-flag').src = c.flags.svg; document.getElementById('detail-name-common').innerText = c.name.common; document.getElementById('detail-name-official').innerText = c.name.official || "-"; document.getElementById('detail-capital').innerText = c.capital?c.capital[0]:"-"; document.getElementById('detail-region').innerText = c.region||"-"; document.getElementById('detail-subregion').innerText = c.subregion||"-"; document.getElementById('detail-population').innerText = c.population?c.population.toLocaleString('id-ID')+" Jiwa":"-"; document.getElementById('detail-area').innerText = c.area?c.area.toLocaleString('id-ID')+" km²":"-"; document.getElementById('detail-currencies').innerText = c.currencies?Object.values(c.currencies).map(x=>`${x.name} (${x.symbol})`).join(', '):"-"; document.getElementById('detail-languages').innerText = c.languages?Object.values(c.languages).join(', '):"-"; document.getElementById('detail-borders').innerText = getBorderNames(c.borders);
             document.getElementById('modal-country-detail').classList.remove('hidden');
         }
-
         function closeCountryDetail() { document.getElementById('modal-country-detail').classList.add('hidden'); }
-
-        function openFlagZoom(url) {
-            document.getElementById('zoomed-flag').src = url;
-            document.getElementById('modal-flag-zoom').classList.remove('hidden');
-        }
+        function openFlagZoom(url) { document.getElementById('zoomed-flag').src = url; document.getElementById('modal-flag-zoom').classList.remove('hidden'); }
         function closeFlagZoom() { document.getElementById('modal-flag-zoom').classList.add('hidden'); }
 
-        // 3D Globe
         let myGlobe = null;
         function initGlobe() {
-            if (myGlobe) return;
+            if(myGlobe) return;
             const container = document.getElementById('globeViz'), tooltip = document.getElementById('globe-tooltip');
-            const gData = countriesData.filter(c => c.latlng).map(c => ({ lat: c.latlng[0], lng: c.latlng[1], name: c.name.common, capital: c.capital ? c.capital[0] : '', population: c.population, flag: c.flags.svg }));
-            myGlobe = Globe()(container).width(container.clientWidth).height(container.clientHeight)
-                .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-                .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
-                .pointsData(gData).pointAltitude(0.02).pointColor(() => '#0ea5e9').pointRadius(0.8)
-                .onPointClick((p) => {
-                    document.getElementById('globe-tooltip-flag').src = p.flag;
-                    document.getElementById('globe-tooltip-name').innerText = p.name;
-                    document.getElementById('globe-tooltip-detail').innerText = `${p.capital} • Pop: ${p.population.toLocaleString('id-ID')}`;
-                    tooltip.classList.remove('hidden');
-                }).onGlobeClick(() => tooltip.classList.add('hidden'));
-            myGlobe.pointOfView({ lat: -0.7893, lng: 113.9213, altitude: 2 }, 1000);
+            myGlobe = Globe()(container).width(container.clientWidth).height(container.clientHeight).globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg').backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png').pointsData(countriesData.map(c=>({lat:c.latlng[0],lng:c.latlng[1],name:c.name.common,capital:c.capital?c.capital[0]:'',population:c.population,flag:c.flags.svg}))).pointAltitude(0.02).pointColor(()=>'#0ea5e9').pointRadius(0.8)
+                .onPointClick(p=>{ document.getElementById('globe-tooltip-flag').src=p.flag; document.getElementById('globe-tooltip-name').innerText=p.name; document.getElementById('globe-tooltip-detail').innerText=`${p.capital} • Pop: ${p.population.toLocaleString('id-ID')}`; tooltip.classList.remove('hidden'); }).onGlobeClick(()=>tooltip.classList.add('hidden'));
+            myGlobe.pointOfView({lat:-0.7893,lng:113.9213,altitude:2},1000);
         }
 
-        // --- Inisialisasi Leaflet Map ---
-        let myLeafletMap = null;
+        let myLeafletMap = null, mapTileLayer = null;
+        const mapStyles = { 'street': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 'dark': 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', 'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' };
+        
         function initLeafletMap() {
-            if (myLeafletMap) {
-                myLeafletMap.invalidateSize(); // Perbaiki ukuran saat div baru dirender
-                return;
-            }
-
-            // Inisialisasi peta ke elemen dengan id 'map-container'
-            // Koordinat awal (0,0) zoom level 2 (Lihat dunia)
-            myLeafletMap = L.map('map-container', {
-                center: [20, 0],
-                zoom: 2,
-                zoomControl: false // Kita nonaktifkan control bawaan agar bisa diatur posisinya
-            });
-
-            // Tambahkan kontrol zoom di posisi yang aman dari navigasi
-            L.control.zoom({ position: 'topright' }).addTo(myLeafletMap);
-
-            // Tambahkan Tile Layer dari OpenStreetMap (Standard Peta Politik/Jalan)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 18,
-                minZoom: 2
-            }).addTo(myLeafletMap);
-
-            // Tambahkan Marker untuk setiap negara
-            countriesData.forEach(country => {
-                if(country.latlng && country.latlng.length === 2) {
-                    
-                    // Membuat icon kustom sederhana berupa titik biru
-                    const customIcon = L.divIcon({
-                        className: 'custom-div-icon',
-                        html: `<div class="w-4 h-4 bg-brand-primary border-2 border-white rounded-full shadow-md hover:scale-125 transition-transform"></div>`,
-                        iconSize: [16, 16],
-                        iconAnchor: [8, 8]
-                    });
-
-                    // Konten HTML untuk Popup saat marker diklik
-                    const popupContent = `
-                        <div class="flex flex-col">
-                            <div class="bg-slate-50 p-3 border-b border-slate-100 flex items-center gap-3">
-                                <img src="${country.flags.svg}" class="w-10 h-7 object-cover rounded shadow-sm border border-slate-200">
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm leading-tight m-0">${country.name.common}</h4>
-                                    <p class="text-[10px] font-bold text-slate-400 m-0 uppercase tracking-wider">${country.region}</p>
-                                </div>
-                            </div>
-                            <div class="p-3 text-xs text-slate-600 flex flex-col gap-1 bg-white">
-                                <p class="m-0 flex justify-between"><span class="text-slate-400">Ibukota:</span> <b class="text-slate-700">${country.capital ? country.capital[0] : '-'}</b></p>
-                                <p class="m-0 flex justify-between"><span class="text-slate-400">Populasi:</span> <b class="text-slate-700">${country.population ? (country.population / 1000000).toFixed(1) + 'M' : '-'}</b></p>
-                                <button onclick="openDetailByCCA3('${country.cca3}')" class="mt-2 w-full bg-brand-primary/10 text-brand-primary font-bold py-1.5 rounded-lg hover:bg-brand-primary hover:text-white transition-colors">Detail Lengkap</button>
-                            </div>
-                        </div>
-                    `;
-
-                    L.marker([country.latlng[0], country.latlng[1]], {icon: customIcon})
-                        .bindPopup(popupContent)
-                        .addTo(myLeafletMap);
-                }
+            if(myLeafletMap) { myLeafletMap.invalidateSize(); return; }
+            myLeafletMap = L.map('map-container', {center:[20,0],zoom:2,zoomControl:false}); L.control.zoom({position:'bottomright'}).addTo(myLeafletMap);
+            mapTileLayer = L.tileLayer(mapStyles['street'], {maxZoom:18,minZoom:2}).addTo(myLeafletMap);
+            
+            countriesData.forEach(c => {
+                const icon = L.divIcon({className:'custom-div-icon', html:`<div class="w-4 h-4 bg-brand-primary border-2 border-white rounded-full shadow-md hover:scale-125 transition-transform"></div>`, iconSize:[16,16], iconAnchor:[8,8]});
+                const pop = `<div class="flex flex-col"><div class="bg-slate-50 p-2 border-b flex items-center gap-2"><img src="${c.flags.svg}" class="w-8 h-5 object-cover rounded border"><div><h4 class="font-bold text-xs m-0">${c.name.common}</h4></div></div><div class="p-2 text-[10px]"><button onclick="openDetailByCCA3('${c.cca3}')" class="w-full bg-brand-primary/10 text-brand-primary font-bold py-1 rounded">Detail</button></div></div>`;
+                L.marker([c.latlng[0], c.latlng[1]], {icon}).bindPopup(pop).addTo(myLeafletMap);
             });
         }
-
-        // Fungsi bantuan untuk membuka detail dari popup Peta berdasarkan kode negara
-        function openDetailByCCA3(cca3) {
-            const country = countriesData.find(c => c.cca3 === cca3);
-            if(country) {
-                // Tutup popup peta aktif (opsional)
-                myLeafletMap.closePopup();
-                openDetail(country);
-            }
-        }
+        function changeMapStyle(style) { if(mapTileLayer) mapTileLayer.setUrl(mapStyles[style]); }
+        function openDetailByCCA3(cca3) { const c = countriesData.find(x=>x.cca3===cca3); if(c){ myLeafletMap.closePopup(); openDetail(c); } }
     </script>
 </body>
 </html>
