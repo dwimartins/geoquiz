@@ -151,7 +151,7 @@
                 <div class="grid gap-4">
                     <button onclick="navigate('explore-map')" class="bg-white p-5 rounded-3xl text-left border border-slate-200 shadow-sm btn-press flex flex-col gap-2">
                         <div class="flex items-center gap-3"><div class="bg-blue-100 p-3 rounded-xl text-blue-600"><i class="ph-fill ph-map-trifold text-2xl"></i></div><h3 class="font-bold text-lg text-slate-700">Peta Raster Detail</h3></div>
-                        <p class="text-xs text-slate-500 font-medium">Atlas jalan dan batas satelit Esri (Batas Sangat Tegas & Internasional).</p>
+                        <p class="text-xs text-slate-500 font-medium">Atlas internasional + Overlay batas negara tegas.</p>
                     </button>
                     
                     <button onclick="navigate('explore-map-vector-leaflet')" class="bg-slate-800 p-5 rounded-3xl text-left border border-slate-700 shadow-md btn-press flex flex-col gap-2">
@@ -161,7 +161,7 @@
                     
                     <button onclick="navigate('explore-map-static')" class="bg-indigo-600 p-5 rounded-3xl text-left border border-indigo-500 shadow-md shadow-indigo-500/20 btn-press flex flex-col gap-2">
                         <div class="flex items-center gap-3"><div class="bg-white/20 p-3 rounded-xl text-white"><i class="ph-fill ph-image text-2xl"></i></div><h3 class="font-bold text-lg text-white">Peta Atlas Statis</h3></div>
-                        <p class="text-xs text-indigo-100 font-medium">Gambar High-Res Atlas. Super ringan, zoom mulus, nama negara langsung terlihat permanen.</p>
+                        <p class="text-xs text-indigo-100 font-medium">Gambar Atlas Dunia. Zoom mulus, nama negara langsung terlihat.</p>
                     </button>
                 </div>
             </div>
@@ -185,7 +185,7 @@
                 </div>
             </div>
 
-            <!-- EKSPLORASI MAP 1 (Leaflet Raster Internasional Esri) -->
+            <!-- EKSPLORASI MAP 1 (Leaflet Raster + Overlay Border) -->
             <div id="view-explore-map" class="hidden h-full flex flex-col p-6 animate-slide-up relative">
                 <button onclick="navigate('explore-map-menu')" class="mb-4 flex items-center gap-2 text-slate-500 font-bold w-fit btn-press bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 relative z-10">
                     <i class="ph-bold ph-arrow-left"></i> Kembali
@@ -193,12 +193,13 @@
                 <div class="flex-1 w-full bg-slate-100 rounded-3xl overflow-hidden relative shadow-inner border border-slate-200 z-0 flex flex-col">
                     <div class="absolute top-4 left-4 z-[400] bg-white/90 backdrop-blur rounded-xl shadow-md p-1 border border-slate-100">
                         <select id="map-style-selector" onchange="changeMapStyle(this.value)" class="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer p-1">
-                            <option value="street">Peta Jalan (EN)</option>
+                            <option value="street">Peta Atlas (NatGeo)</option>
+                            <option value="voyager">Peta Modern</option>
                             <option value="dark">Mode Gelap (EN)</option>
                             <option value="satellite">Citra Satelit</option>
                         </select>
                     </div>
-                    <div id="map-container" class="flex-1 w-full h-full"></div>
+                    <div id="map-container" class="flex-1 w-full h-full bg-blue-50/50"></div>
                 </div>
             </div>
 
@@ -222,7 +223,7 @@
                 </div>
             </div>
 
-            <!-- EKSPLORASI MAP 3 (Peta SVG Statis Zoomable) -->
+            <!-- EKSPLORASI MAP 3 (Peta SVG Statis Zoomable dengan Proxy) -->
             <div id="view-explore-map-static" class="hidden h-full flex flex-col p-6 animate-slide-up relative">
                 <button onclick="navigate('explore-map-menu')" class="mb-4 flex items-center gap-2 text-slate-500 font-bold w-fit btn-press bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100 relative z-10">
                     <i class="ph-bold ph-arrow-left"></i> Kembali
@@ -1621,9 +1622,10 @@
         // ==========================================
         let myLeafletMap = null, mapTileLayer = null;
         
-        // Menggunakan Esri World Street Map untuk batas yang super tegas & bahasa Inggris, atau mempertahankan CartoDB Dark
+        // Menggunakan Esri NatGeo World Map untuk batas yang sangat jelas & tegas
         const mapStyles = { 
-            'street': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', 
+            'street': 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', 
+            'voyager': 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', 
             'dark': 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', 
             'satellite': 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
         };
@@ -1631,7 +1633,18 @@
         function initLeafletMap() {
             if(myLeafletMap) { myLeafletMap.invalidateSize(); return; }
             myLeafletMap = L.map('map-container', {center:[20,0],zoom:2,zoomControl:false}); L.control.zoom({position:'bottomright'}).addTo(myLeafletMap);
-            mapTileLayer = L.tileLayer(mapStyles['street'], {maxZoom:18,minZoom:2}).addTo(myLeafletMap);
+            mapTileLayer = L.tileLayer(mapStyles['street'], {maxZoom:16,minZoom:2}).addTo(myLeafletMap);
+            
+            // Tambahan Overlay Batas GeoJSON agar 100% terlihat jelas garis negaranya
+            fetch('https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json')
+                .then(res => res.json())
+                .then(geoData => {
+                    L.geoJSON(geoData, {
+                        style: { fillColor: 'transparent', color: '#1e293b', weight: 1.5, opacity: 0.7, fillOpacity: 0 },
+                        interactive: false // Agar tetap bisa klik marker di bawahnya
+                    }).addTo(myLeafletMap);
+                }).catch(e => console.warn('Gagal memuat overlay batas:', e));
+
             countriesData.forEach(c => {
                 const icon = L.divIcon({className:'custom-div-icon', html:`<div class="w-4 h-4 bg-brand-primary border-2 border-white rounded-full shadow-md hover:scale-125 transition-transform"></div>`, iconSize:[16,16], iconAnchor:[8,8]});
                 const pop = `<div class="flex flex-col"><div class="bg-slate-50 p-2 border-b flex items-center gap-2"><img src="${c.flags.svg}" class="w-8 h-5 object-cover rounded border"><div><h4 class="font-bold text-xs m-0">${c.name.common}</h4></div></div><div class="p-2 text-[10px]"><button onclick="openDetailByCCA3('${c.cca3}')" class="w-full bg-brand-primary/10 text-brand-primary font-bold py-1 rounded">Detail</button></div></div>`;
@@ -1730,9 +1743,10 @@
         }
 
         // ==========================================
-        // 3. PETA ATLAS STATIS (PNG VIEWER) - SOLUSI UNTUK BLANK BIRU
+        // 3. PETA ATLAS STATIS (PNG VIEWER) - MENGGUNAKAN FALLBACK SYSTEM
         // ==========================================
         let myStaticMap = null;
+        let imageOverlay = null;
 
         function initStaticMap() {
             const loadingEl = document.getElementById('vector-static-loading');
@@ -1744,38 +1758,52 @@
                 return; 
             }
             
-            // Konfigurasi map tanpa koordinat geografis nyata (hanya penampil gambar datar)
             myStaticMap = L.map('map-static-container', {
                 crs: L.CRS.Simple,
-                minZoom: -2,  // Memungkinkan zoom-out lebih jauh agar gambar terlihat penuh di HP
+                minZoom: -2,
                 maxZoom: 3,
                 zoomControl: false,
                 attributionControl: false
             });
             L.control.zoom({position:'bottomright'}).addTo(myStaticMap);
 
-            // Resolusi asli gambar (berfungsi sebagai koordinat batasan di L.CRS.Simple)
             const w = 2560;
             const h = 1314;
             const bounds = [[0, 0], [h, w]];
 
-            // Menggunakan Fallback PNG resolusi super tinggi yang dibuat server Wikipedia dari SVG-nya
-            // SVG langsung kerap terblokir oleh mekanisme rendering canvas di peramban seluler.
-            const imageUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Political_World_Map_with_Capital_Cities_%28en%29.svg/2560px-Political_World_Map_with_Capital_Cities_%28en%29.svg.png';
+            // Tiga tautan cadangan (fallback) yang aman menggunakan Proxy Image wsrv.nl untuk mem-bypass pemblokiran server
+            const fallbackImages = [
+                'https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Political_World_Map_with_Capital_Cities_%28en%29.svg/2560px-Political_World_Map_with_Capital_Cities_%28en%29.svg.png',
+                'https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/c/c4/World_map_%28political%29.svg/2560px-World_map_%28political%29.svg.png',
+                'https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Political_World_Map_with_Capital_Cities_%28en%29.svg/1920px-Political_World_Map_with_Capital_Cities_%28en%29.svg.png'
+            ];
+            
+            let currentImageIndex = 0;
 
-            const imageOverlay = L.imageOverlay(imageUrl, bounds).addTo(myStaticMap);
-            
-            imageOverlay.on('load', function() {
-                if (loadingEl) loadingEl.classList.add('hidden');
-            });
-            
-            imageOverlay.on('error', function() {
-                if (loadingEl) {
-                    loadingEl.innerHTML = '<p class="text-red-600 font-bold px-4 text-center">Gagal memuat gambar atlas dari server Wikimedia.</p>';
+            function tryLoadImage() {
+                if(currentImageIndex >= fallbackImages.length) {
+                    if (loadingEl) loadingEl.innerHTML = '<p class="text-red-600 font-bold px-4 text-center">Gagal memuat gambar atlas setelah beberapa percobaan.</p>';
+                    return;
                 }
-            });
+                
+                if(imageOverlay) {
+                    myStaticMap.removeLayer(imageOverlay);
+                }
 
-            // Paskan gambar dengan layar
+                imageOverlay = L.imageOverlay(fallbackImages[currentImageIndex], bounds).addTo(myStaticMap);
+                
+                imageOverlay.on('load', function() {
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                });
+                
+                imageOverlay.on('error', function() {
+                    console.warn("Gagal memuat atlas dari URL:", fallbackImages[currentImageIndex]);
+                    currentImageIndex++;
+                    tryLoadImage();
+                });
+            }
+
+            tryLoadImage();
             myStaticMap.fitBounds(bounds);
         }
     </script>
