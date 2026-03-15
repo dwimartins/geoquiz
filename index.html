@@ -1634,16 +1634,6 @@
             if(myLeafletMap) { myLeafletMap.invalidateSize(); return; }
             myLeafletMap = L.map('map-container', {center:[20,0],zoom:2,zoomControl:false}); L.control.zoom({position:'bottomright'}).addTo(myLeafletMap);
             mapTileLayer = L.tileLayer(mapStyles['street'], {maxZoom:16,minZoom:2}).addTo(myLeafletMap);
-            
-            // Tambahan Overlay Batas GeoJSON agar 100% terlihat jelas garis negaranya
-            fetch('https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json')
-                .then(res => res.json())
-                .then(geoData => {
-                    L.geoJSON(geoData, {
-                        style: { fillColor: 'transparent', color: '#1e293b', weight: 1.5, opacity: 0.7, fillOpacity: 0 },
-                        interactive: false // Agar tetap bisa klik marker di bawahnya
-                    }).addTo(myLeafletMap);
-                }).catch(e => console.warn('Gagal memuat overlay batas:', e));
 
             countriesData.forEach(c => {
                 const icon = L.divIcon({className:'custom-div-icon', html:`<div class="w-4 h-4 bg-brand-primary border-2 border-white rounded-full shadow-md hover:scale-125 transition-transform"></div>`, iconSize:[16,16], iconAnchor:[8,8]});
@@ -1771,11 +1761,12 @@
             const h = 1314;
             const bounds = [[0, 0], [h, w]];
 
-            // Tiga tautan cadangan (fallback) yang aman menggunakan Proxy Image wsrv.nl untuk mem-bypass pemblokiran server
+            // Menggunakan tautan gambar langsung dari Wikipedia tanpa proxy, dengan resolusi menengah (1280px - 1920px) 
+            // agar memori HP tidak terbebani dan gambar cepat muncul.
             const fallbackImages = [
-                'https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Political_World_Map_with_Capital_Cities_%28en%29.svg/2560px-Political_World_Map_with_Capital_Cities_%28en%29.svg.png',
-                'https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/c/c4/World_map_%28political%29.svg/2560px-World_map_%28political%29.svg.png',
-                'https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Political_World_Map_with_Capital_Cities_%28en%29.svg/1920px-Political_World_Map_with_Capital_Cities_%28en%29.svg.png'
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Political_World_Map_with_Capital_Cities_%28en%29.svg/1920px-Political_World_Map_with_Capital_Cities_%28en%29.svg.png',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Political_World_Map_with_Capital_Cities_%28en%29.svg/1280px-Political_World_Map_with_Capital_Cities_%28en%29.svg.png',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/World_map_%28political%29.svg/1280px-World_map_%28political%29.svg.png'
             ];
             
             let currentImageIndex = 0;
