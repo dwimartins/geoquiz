@@ -655,9 +655,9 @@
             "ESH": "Dipersengketakan (Maroko/Sahrawi)", "ATA": "Traktat Antarktika"
         };
 
-        // PETA DARATAN UTAMA (Override siluet hitam murni untuk negara yang gagal/terpotong di library mapsicon)
+        // PETA DARATAN UTAMA (Override untuk negara yang seringkali terpotong atau memiliki ukuran ekstrem pada batas boundingnya)
         const shapeOverrides = {
-            "my": "https://img.icons8.com/ios-filled/250/000000/malaysia-map.png",
+            // "my" dihapus agar program otomatis menggunakan fallback "mapsicon" yang mencakup Malaysia Barat & Timur
             "us": "https://img.icons8.com/ios-filled/250/000000/usa-map.png",
             "ru": "https://img.icons8.com/ios-filled/250/000000/russia-map.png"
         };
@@ -930,7 +930,9 @@
                 statusHeader.classList.add('hidden'); bottomNav.classList.remove('hidden');
             }
 
-            let activeTab = viewId.includes('explore') ? 'explore' : (viewId.includes('quiz') ? 'quiz' : 'profile');
+            let activeTab = viewId.includes('explore') ? 'explore' : (viewId.includes('quiz') ? 'profile' : 'profile'); // Koreksi minor tab profile
+            activeTab = viewId.includes('explore') ? 'explore' : (viewId.includes('quiz') ? 'quiz' : 'profile'); // reset tab
+
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 if(btn.dataset.tab === activeTab) { btn.classList.add('text-brand-primary'); btn.classList.remove('text-slate-400'); } 
                 else { btn.classList.remove('text-brand-primary'); btn.classList.add('text-slate-400'); }
@@ -1394,18 +1396,18 @@
             if (cc2 && shapeOverrides[cc2]) {
                 shapeSection.classList.remove('hidden');
                 shapeImg.src = shapeOverrides[cc2];
-                // Peta override kini menggunakan siluet hitam transparan murni, menyatu seragam dengan style aplikasi
+                // Peta override menggunakan siluet hitam transparan murni, menyatu seragam dengan style aplikasi
                 shapeImg.className = "max-w-full max-h-full object-contain filter drop-shadow-md opacity-70";
                 
-                // Fallback jika API icon eksternal diblokir/gagal
+                // Fallback jika API icon eksternal diblokir/gagal menggunakan CDN jsDelivr yang lebih cepat
                 shapeImg.onerror = () => {
-                    shapeImg.src = `https://raw.githubusercontent.com/djaiss/mapsicon/master/all/${cc2}/vector.svg`;
+                    shapeImg.src = `https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/${cc2}/vector.svg`;
                     shapeImg.className = "max-w-full max-h-full object-contain filter drop-shadow-md opacity-70";
                     shapeImg.onerror = () => shapeSection.classList.add('hidden');
                 };
             } else if (cc2) {
                 shapeSection.classList.remove('hidden');
-                shapeImg.src = `https://raw.githubusercontent.com/djaiss/mapsicon/master/all/${cc2}/vector.svg`;
+                shapeImg.src = `https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/${cc2}/vector.svg`;
                 shapeImg.className = "max-w-full max-h-full object-contain filter drop-shadow-md opacity-70";
                 shapeImg.onerror = () => shapeSection.classList.add('hidden');
             } else {
