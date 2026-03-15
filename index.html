@@ -522,7 +522,7 @@
                         </div>
                     </div>
                     
-                    <!-- PETA WILAYAH UTAMA -->
+                    <!-- PETA DARATAN UTAMA -->
                     <div id="detail-shape-section" class="flex flex-col gap-2 mt-2 pt-4 border-t border-slate-100 items-center justify-center hidden">
                         <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-center">Peta Daratan Utama</h4>
                         <div class="w-full h-32 bg-slate-50/50 rounded-xl flex items-center justify-center p-3">
@@ -655,9 +655,9 @@
             "ESH": "Dipersengketakan (Maroko/Sahrawi)", "ATA": "Traktat Antarktika"
         };
 
-        // PETA DARATAN UTAMA (Override untuk negara yang seringkali terpotong atau memiliki ukuran ekstrem pada batas boundingnya)
+        // PETA DARATAN UTAMA (Override siluet hitam murni untuk negara yang gagal/terpotong di library mapsicon)
         const shapeOverrides = {
-            // "my" dihapus agar program otomatis menggunakan fallback "mapsicon" yang mencakup Malaysia Barat & Timur
+            "my": "https://cdn.jsdelivr.net/gh/Highcharts/map-collection-dist@master/countries/my/my-all.svg",
             "us": "https://img.icons8.com/ios-filled/250/000000/usa-map.png",
             "ru": "https://img.icons8.com/ios-filled/250/000000/russia-map.png"
         };
@@ -930,8 +930,7 @@
                 statusHeader.classList.add('hidden'); bottomNav.classList.remove('hidden');
             }
 
-            let activeTab = viewId.includes('explore') ? 'explore' : (viewId.includes('quiz') ? 'profile' : 'profile'); // Koreksi minor tab profile
-            activeTab = viewId.includes('explore') ? 'explore' : (viewId.includes('quiz') ? 'quiz' : 'profile'); // reset tab
+            let activeTab = viewId.includes('explore') ? 'explore' : (viewId.includes('quiz') ? 'quiz' : 'profile'); // reset tab
 
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 if(btn.dataset.tab === activeTab) { btn.classList.add('text-brand-primary'); btn.classList.remove('text-slate-400'); } 
@@ -1396,18 +1395,24 @@
             if (cc2 && shapeOverrides[cc2]) {
                 shapeSection.classList.remove('hidden');
                 shapeImg.src = shapeOverrides[cc2];
-                // Peta override menggunakan siluet hitam transparan murni, menyatu seragam dengan style aplikasi
-                shapeImg.className = "max-w-full max-h-full object-contain filter drop-shadow-md opacity-70";
+                // Peta override kini menggunakan siluet hitam transparan murni, menyatu seragam dengan style aplikasi
+                shapeImg.className = "max-w-full max-h-full object-contain filter drop-shadow-md opacity-70" + (cc2 === 'my' ? " brightness-0" : "");
                 
-                // Fallback jika API icon eksternal diblokir/gagal menggunakan CDN jsDelivr yang lebih cepat
+                // Fallback jika API icon eksternal diblokir/gagal
                 shapeImg.onerror = () => {
-                    shapeImg.src = `https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/${cc2}/vector.svg`;
-                    shapeImg.className = "max-w-full max-h-full object-contain filter drop-shadow-md opacity-70";
-                    shapeImg.onerror = () => shapeSection.classList.add('hidden');
+                    if (cc2 === 'my') {
+                        // KUNCI SOLUSI: Cegah fallback ke mapsicon khusus Malaysia karena mapsicon terbukti cacat
+                        shapeImg.src = "https://commons.wikimedia.org/wiki/Special:FilePath/Malaysia_location_map.svg?width=500";
+                        shapeImg.onerror = () => shapeSection.classList.add('hidden');
+                    } else {
+                        shapeImg.src = `https://raw.githubusercontent.com/djaiss/mapsicon/master/all/${cc2}/vector.svg`;
+                        shapeImg.className = "max-w-full max-h-full object-contain filter drop-shadow-md opacity-70";
+                        shapeImg.onerror = () => shapeSection.classList.add('hidden');
+                    }
                 };
             } else if (cc2) {
                 shapeSection.classList.remove('hidden');
-                shapeImg.src = `https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/${cc2}/vector.svg`;
+                shapeImg.src = `https://raw.githubusercontent.com/djaiss/mapsicon/master/all/${cc2}/vector.svg`;
                 shapeImg.className = "max-w-full max-h-full object-contain filter drop-shadow-md opacity-70";
                 shapeImg.onerror = () => shapeSection.classList.add('hidden');
             } else {
