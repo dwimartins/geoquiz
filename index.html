@@ -122,7 +122,6 @@
                         <div class="bg-indigo-50 p-4 rounded-2xl text-indigo-500"><i class="ph-fill ph-cards text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl text-slate-700">Katalog Dunia</h3><p class="text-sm text-slate-400 mt-1">Ensiklopedia negara dunia</p></div>
                     </button>
-                    <!-- Tombol Baru: Negara Bagian AS -->
                     <button onclick="navigate('explore-states')" class="bg-rose-500 p-6 rounded-3xl text-left text-white shadow-xl shadow-rose-500/30 btn-press flex items-center gap-4">
                         <div class="bg-white/20 p-4 rounded-2xl"><i class="ph-fill ph-flag-banner text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl">Negara Bagian AS</h3><p class="text-sm text-rose-100 mt-1">Jelajahi 50 wilayah Amerika</p></div>
@@ -323,9 +322,9 @@
                 <div class="bg-white rounded-3xl p-5 shadow-xl shadow-slate-200/50 flex flex-col items-center justify-center border border-slate-100 text-center h-full relative overflow-hidden">
                     
                     <!-- Feedback Toast Modal untuk Jawaban Salah -->
-                    <div id="quiz-feedback" class="hidden absolute top-4 left-1/2 transform -translate-x-1/2 w-max max-w-[90%] bg-rose-500 text-white p-2.5 rounded-xl shadow-lg flex items-center gap-2 z-[60] animate-slide-down border border-white">
-                        <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center shrink-0"><i class="ph-bold ph-x text-sm"></i></div>
-                        <p id="quiz-feedback-text" class="text-[11px] font-bold leading-snug text-left"></p>
+                    <div id="quiz-feedback" class="hidden absolute top-4 left-4 right-4 bg-rose-500 text-white p-3 rounded-2xl shadow-lg flex items-center gap-3 z-[60] animate-slide-down border-2 border-white">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0"><i class="ph-bold ph-x text-lg"></i></div>
+                        <p id="quiz-feedback-text" class="text-xs font-bold leading-snug text-left flex-1"></p>
                     </div>
 
                     <div id="question-header" class="mb-6 w-full flex flex-col items-center justify-center relative z-10 shrink-0"></div>
@@ -609,7 +608,7 @@
                 <h2 class="text-2xl font-black mb-2 text-slate-800" id="go-title">Game Over!</h2>
                 <p class="text-slate-500 mb-4 font-medium" id="go-desc">Skor yang Anda kumpulkan:</p>
                 <div class="text-6xl font-black text-brand-primary mb-8" id="final-score">0</div>
-                <button onclick="closeModal('modal-gameover'); navigate('quiz-menu');" class="w-full bg-brand-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/30 btn-press">
+                <button onclick="closeGameOver()" class="w-full bg-brand-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/30 btn-press">
                     Kembali ke Menu
                 </button>
             </div>
@@ -658,9 +657,9 @@
 
         // PETA DARATAN UTAMA (Mencegah potong peta pada library standar)
         const shapeOverrides = {
-            "my": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Malaysia_location_map.svg/1024px-Malaysia_location_map.svg.png",
-            "us": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/US_map_-_geographic.svg/800px-US_map_-_geographic.svg.png",
-            "ru": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Russia_location_map.svg/800px-Russia_location_map.svg.png"
+            "my": "https://upload.wikimedia.org/wikipedia/commons/2/23/Malaysia_location_map.svg",
+            "us": "https://upload.wikimedia.org/wikipedia/commons/1/1a/US_map_-_geographic.svg",
+            "ru": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Russia_location_map.svg"
         };
 
         // DATABASE MINI NEGARA BAGIAN AS (50 States)
@@ -844,11 +843,13 @@
         function openModal(modalId, parentModalId = null) {
             document.getElementById(modalId).classList.remove('hidden');
             const currentState = history.state || {};
-            history.pushState({ 
-                view: currentState.view || 'quiz-menu', 
-                modal: modalId,
-                parentModal: parentModalId || currentState.modal 
-            }, '');
+            if (currentState.modal !== modalId) {
+                history.pushState({ 
+                    view: currentState.view || 'quiz-menu', 
+                    modal: modalId,
+                    parentModal: parentModalId || currentState.modal 
+                }, '');
+            }
         }
 
         function closeModal(modalId) {
@@ -860,6 +861,14 @@
                 // Fallback jika tidak sinkron
                 document.getElementById(modalId).classList.add('hidden');
             }
+        }
+
+        // FUNGSI KHUSUS UNTUK MENUTUP GAME OVER MODAL DAN RESET HISTORY
+        function closeGameOver() {
+            document.getElementById('modal-gameover').classList.add('hidden');
+            // Ganti history Modal Game Over menjadi tampilan menu kuis agar bersih
+            history.replaceState({ view: 'quiz-menu' }, '');
+            renderView('quiz-menu', false);
         }
 
         window.onload = async () => { 
@@ -1089,7 +1098,7 @@
             document.getElementById('comp-type-b').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah'; document.getElementById('comp-val-b').innerText = compareProperty === 'population' ? vB.toLocaleString('id-ID') : vB.toLocaleString('id-ID') + " km²";
             const valText = document.getElementById('comp-val-b');
             if(isCorrect) { valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-success drop-shadow-lg"; score+=15; updateStatsDisplay(); showToast(true); } 
-            else { valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-secondary drop-shadow-lg"; appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 400); lives--; updateStatsDisplay(); showToast(false); }
+            else { valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-secondary drop-shadow-lg"; appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 300); lives--; updateStatsDisplay(); showToast(false); }
             setTimeout(() => { if(lives<=0 && !isCorrect) gameOver(); else { countryA = countryB; countryB = getNextCompare(countryA, countriesData); renderCompareUI(); } }, 1200); 
         }
 
