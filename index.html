@@ -13,8 +13,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <script src="https://code.highcharts.com/maps/highmaps.js"></script>
-    <script src="https://code.highcharts.com/mapdata/custom/world.js"></script>
+    <!-- Menggunakan jsDelivr CDN yang lebih handal dan jarang diblokir oleh sandbox -->
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@11.4.0/highmaps.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@highcharts/map-collection@2.1.0/custom/world.js"></script>
 
     <script>
         tailwind.config = {
@@ -1594,6 +1595,15 @@
         function initVectorMap() {
             const loadingEl = document.getElementById('vector-map-loading');
             
+            if (typeof Highcharts === 'undefined') {
+                if (loadingEl) {
+                    loadingEl.classList.remove('hidden');
+                    loadingEl.innerHTML = '<p class="text-red-500 font-bold px-4 text-center">Gagal memuat pustaka peta vektor (Highcharts).<br>Sistem memblokir skrip atau koneksi tidak stabil.</p>';
+                }
+                console.error("Highcharts is not defined.");
+                return;
+            }
+
             if (myVectorMap) { 
                 myVectorMap.reflow(); // Highcharts cara me-resize ulang canvas
                 if (loadingEl) loadingEl.classList.add('hidden');
