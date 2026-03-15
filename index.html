@@ -75,7 +75,7 @@
 
     <div id="app-container">
         
-        <!-- Sticky Search Button (Pojok Kanan Atas) -->
+        <!-- Sticky Search Button -->
         <button id="btn-sticky-search" onclick="scrollToSearch()" class="hidden absolute top-[72px] right-6 z-40 bg-brand-primary text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center animate-pop btn-press border-2 border-white">
             <i class="ph-bold ph-magnifying-glass text-lg"></i>
         </button>
@@ -122,6 +122,14 @@
                         <div class="bg-indigo-50 p-4 rounded-2xl text-indigo-500"><i class="ph-fill ph-cards text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl text-slate-700">Katalog Dunia</h3><p class="text-sm text-slate-400 mt-1">Ensiklopedia negara dunia</p></div>
                     </button>
+                    
+                    <!-- PROVINSI INDONESIA -->
+                    <button onclick="navigate('explore-provinces')" class="bg-red-500 p-6 rounded-3xl text-left text-white shadow-xl shadow-red-500/30 btn-press flex items-center gap-4 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-32 h-full bg-white/10 skew-x-12 transform origin-bottom -mr-4"></div>
+                        <div class="bg-white/20 p-4 rounded-2xl relative z-10"><i class="ph-fill ph-flag text-4xl"></i></div>
+                        <div class="relative z-10"><h3 class="font-bold text-xl">Provinsi RI</h3><p class="text-sm text-red-100 mt-1">Eksplorasi 38 Wilayah</p></div>
+                    </button>
+
                     <button onclick="navigate('explore-states')" class="bg-rose-500 p-6 rounded-3xl text-left text-white shadow-xl shadow-rose-500/30 btn-press flex items-center gap-4">
                         <div class="bg-white/20 p-4 rounded-2xl"><i class="ph-fill ph-flag-banner text-4xl"></i></div>
                         <div><h3 class="font-bold text-xl">Negara Bagian AS</h3><p class="text-sm text-rose-100 mt-1">Jelajahi 50 wilayah Amerika</p></div>
@@ -175,7 +183,6 @@
                     <button onclick="navigate('explore-menu')" class="flex items-center gap-2 text-slate-500 font-bold btn-press bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100"><i class="ph-bold ph-arrow-left"></i> Kembali</button>
                 </div>
                 
-                <!-- Search Bar -->
                 <div class="relative w-full mb-3">
                     <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
                     <input type="text" id="catalog-search" oninput="populateCatalog()" placeholder="Cari negara atau ibukota..." class="w-full bg-white border border-slate-200 text-slate-600 text-sm rounded-xl pl-9 pr-3 py-2.5 font-bold shadow-sm outline-none focus:ring-2 focus:ring-brand-primary">
@@ -198,13 +205,35 @@
                 <div id="catalog-grid" class="grid grid-cols-2 gap-3"></div>
             </div>
 
+            <!-- EKSPLORASI KATALOG PROVINSI INDONESIA (NEW) -->
+            <div id="view-explore-provinces" class="hidden min-h-full flex-col p-6 animate-slide-up">
+                <div class="flex justify-between items-center mb-3">
+                    <button onclick="navigate('explore-menu')" class="flex items-center gap-2 text-slate-500 font-bold btn-press bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100"><i class="ph-bold ph-arrow-left"></i> Kembali</button>
+                </div>
+                
+                <div class="relative w-full mb-3">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="provinces-search" oninput="populateProvincesCatalog()" placeholder="Cari provinsi atau ibukota..." class="w-full bg-white border border-red-200 text-slate-600 text-sm rounded-xl pl-9 pr-3 py-2.5 font-bold shadow-sm outline-none focus:ring-2 focus:ring-red-500">
+                </div>
+
+                <div class="grid grid-cols-1 gap-2 mb-4">
+                    <select id="provinces-sort" onchange="populateProvincesCatalog()" class="bg-white border border-red-200 text-slate-600 text-xs rounded-xl px-3 py-2 font-bold shadow-sm outline-none focus:ring-2 focus:ring-red-500 w-full">
+                        <option value="name-asc">🔤 Urutkan Abjad (A-Z)</option>
+                        <option value="pop-desc">👥 Populasi Terbanyak</option>
+                        <option value="pop-asc">👤 Populasi Paling Sedikit</option>
+                        <option value="area-desc">🗺️ Luas Terbesar</option>
+                        <option value="area-asc">📍 Luas Terkecil</option>
+                    </select>
+                </div>
+                <div id="provinces-grid" class="grid grid-cols-2 gap-3"></div>
+            </div>
+
             <!-- EKSPLORASI KATALOG NEGARA BAGIAN AS -->
             <div id="view-explore-states" class="hidden min-h-full flex-col p-6 animate-slide-up">
                 <div class="flex justify-between items-center mb-3">
                     <button onclick="navigate('explore-menu')" class="flex items-center gap-2 text-slate-500 font-bold btn-press bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100"><i class="ph-bold ph-arrow-left"></i> Kembali</button>
                 </div>
                 
-                <!-- Search Bar States -->
                 <div class="relative w-full mb-3">
                     <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
                     <input type="text" id="states-search" oninput="populateStatesCatalog()" placeholder="Cari negara bagian AS..." class="w-full bg-white border border-slate-200 text-slate-600 text-sm rounded-xl pl-9 pr-3 py-2.5 font-bold shadow-sm outline-none focus:ring-2 focus:ring-rose-500">
@@ -321,7 +350,6 @@
                 <div id="timer-container-classic" class="hidden absolute top-0 left-0 right-0 h-1.5 bg-slate-200 z-10"><div id="timer-bar-classic" class="h-full bg-brand-primary w-full transition-all linear"></div></div>
                 <div class="bg-white rounded-3xl p-5 shadow-xl shadow-slate-200/50 flex flex-col items-center justify-center border border-slate-100 text-center h-full relative overflow-hidden">
                     
-                    <!-- Feedback Toast Modal untuk Jawaban Salah -->
                     <div id="quiz-feedback" class="hidden absolute top-4 left-4 right-4 bg-rose-500 text-white p-3 rounded-2xl shadow-lg flex items-center gap-3 z-[60] animate-slide-down border-2 border-white">
                         <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0"><i class="ph-bold ph-x text-lg"></i></div>
                         <p id="quiz-feedback-text" class="text-xs font-bold leading-snug text-left flex-1"></p>
@@ -428,7 +456,7 @@
             </button>
         </nav>
         
-        <!-- AREA KHUSUS MODAL / POP-UP (Hanya Boleh Ada 1 Untuk Tiap ID) -->
+        <!-- AREA KHUSUS MODAL / POP-UP -->
 
         <!-- 1. MODAL DETAIL NEGARA DUNIA -->
         <div id="modal-country-detail" class="hidden absolute inset-0 bg-slate-900/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6 transition-all">
@@ -574,7 +602,47 @@
             </div>
         </div>
 
-        <!-- 3. MODAL LINKED LIST (Daftar Negara Terkait) -->
+        <!-- 3. MODAL DETAIL PROVINSI INDONESIA (NEW) -->
+        <div id="modal-province-detail" class="hidden absolute inset-0 bg-slate-900/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6 transition-all">
+            <div class="bg-white rounded-3xl w-full max-w-sm max-h-[85vh] shadow-2xl relative animate-slide-up flex flex-col">
+                <button onclick="closeModal('modal-province-detail')" class="absolute top-4 right-4 w-10 h-10 bg-slate-100 hover:bg-red-500 hover:text-white text-slate-500 rounded-full flex items-center justify-center shadow-md border-2 border-white transition-colors z-20 btn-press">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+
+                <div class="p-6 bg-red-50 rounded-t-3xl border-b border-red-100 flex flex-col items-center text-center shrink-0 relative">
+                    <p class="text-[10px] text-red-400 font-bold uppercase tracking-widest mb-3">Ketuk lambang untuk perbesar</p>
+                    <div class="flex justify-center items-center gap-4 mb-3 w-full">
+                        <img id="detail-prov-coat" src="" onclick="openFlagZoom(this.src)" class="w-24 h-24 object-contain drop-shadow-md cursor-zoom-in active:scale-95 transition-transform" title="Lambang Provinsi">
+                    </div>
+                    <h2 id="detail-prov-name" class="text-2xl font-black text-slate-800 leading-tight mt-1">Nama Provinsi</h2>
+                    <p class="text-xs text-red-500 font-bold mt-1 bg-white px-2 py-0.5 rounded-full border border-red-200">Provinsi RI</p>
+                </div>
+
+                <div class="p-6 flex-1 overflow-y-auto flex flex-col gap-5 text-sm text-slate-600 pb-8 no-scrollbar">
+                    <div class="flex flex-col gap-3">
+                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Informasi Dasar</h4>
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-2 gap-2">
+                            <span class="flex items-center gap-2 text-slate-500 whitespace-nowrap"><i class="ph-bold ph-buildings"></i> Ibukota</span>
+                            <span id="detail-prov-capital" class="font-bold text-slate-800 text-right">Mendata...</span>
+                        </div>
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-2 gap-2">
+                            <span class="flex items-center gap-2 text-slate-500 whitespace-nowrap"><i class="ph-bold ph-users"></i> Populasi</span>
+                            <span id="detail-prov-population" class="font-bold text-slate-800 text-right">Mendata...</span>
+                        </div>
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-2 gap-2">
+                            <span class="flex items-center gap-2 text-slate-500 whitespace-nowrap"><i class="ph-bold ph-bounding-box"></i> Luas Wilayah</span>
+                            <span id="detail-prov-area" class="font-bold text-slate-800 text-right">Mendata...</span>
+                        </div>
+                        <div class="flex justify-between items-start border-b border-slate-100 pb-2 gap-2">
+                            <span class="flex items-center gap-2 text-slate-500 whitespace-nowrap"><i class="ph-bold ph-calendar-blank"></i> Dibentuk</span>
+                            <span id="detail-prov-established" class="font-bold text-slate-800 text-right">Mendata...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. MODAL LINKED LIST (Daftar Negara Terkait) -->
         <div id="modal-related-list" class="hidden absolute inset-0 bg-slate-900/70 backdrop-blur-sm z-[105] flex items-center justify-center p-4 sm:p-6 transition-all">
             <div class="bg-white rounded-3xl w-full max-w-xs max-h-[70vh] shadow-2xl relative animate-pop flex flex-col overflow-hidden">
                 <button onclick="closeModal('modal-related-list')" class="absolute top-4 right-4 w-10 h-10 bg-slate-100 hover:bg-rose-500 hover:text-white text-slate-500 rounded-full flex items-center justify-center shadow-md border-2 border-white transition-colors z-20 btn-press">
@@ -590,16 +658,16 @@
             </div>
         </div>
 
-        <!-- 4. MODAL FOKUS BENDERA -->
+        <!-- 5. MODAL FOKUS BENDERA -->
         <div id="modal-flag-zoom" class="hidden absolute inset-0 bg-black/95 z-[110] flex flex-col items-center justify-center p-4 transition-opacity animate-fadeIn">
             <button onclick="closeModal('modal-flag-zoom')" class="absolute top-6 right-6 w-12 h-12 bg-white/10 hover:bg-rose-500 text-white rounded-full flex items-center justify-center text-xl transition-colors shadow-lg btn-press">
                 <i class="ph-bold ph-x"></i>
             </button>
-            <img id="zoomed-flag" src="" class="max-w-full max-h-[80vh] object-contain rounded shadow-2xl">
+            <img id="zoomed-flag" src="" class="max-w-full max-h-[80vh] object-contain rounded shadow-2xl bg-white p-2">
             <p class="text-white/50 text-sm mt-6 font-medium">Ketuk X untuk menutup</p>
         </div>
 
-        <!-- 5. MODAL GAME OVER -->
+        <!-- 6. MODAL GAME OVER -->
         <div id="modal-gameover" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
             <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl animate-pop relative overflow-hidden">
                 <div class="w-20 h-20 bg-brand-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -627,6 +695,11 @@
         document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(blob)}">`);
 
         let countriesData = [];
+        let indoProvincesData = []; 
+        let usStatesData = [];
+        let sovereignMap = {};
+        let shapeOverrides = {};
+        
         let score = 0, lives = 3, maxLives = 3;
         let bestClassicScore = 0, bestCompareScore = 0, bestMapScore = 0;
         
@@ -639,82 +712,6 @@
         let quizSettingLives = 3;
         let quizSettingTime = 0; // 0 = infinity time
         let quizTimeTemp = 10; 
-
-        // KAMUS HYBRID (Custom Dictionary) - Negara Induk Wilayah Dependensi
-        const sovereignMap = {
-            "CXR": "Australia", "CCK": "Australia", "NFK": "Australia", "HMD": "Australia",
-            "MAC": "Tiongkok", "HKG": "Tiongkok",
-            "FRO": "Denmark", "GRL": "Denmark",
-            "ALA": "Finlandia",
-            "NCL": "Prancis", "GUF": "Prancis", "GLP": "Prancis", "MTQ": "Prancis", "MYT": "Prancis", "REU": "Prancis", "BLM": "Prancis", "MAF": "Prancis", "SPM": "Prancis", "WLF": "Prancis", "ATF": "Prancis",
-            "SJM": "Norwegia", "BVT": "Norwegia",
-            "TKL": "Selandia Baru", "NIU": "Selandia Baru", "COK": "Selandia Baru",
-            "ABW": "Belanda", "CUW": "Belanda", "SXM": "Belanda", "BES": "Belanda",
-            "AIA": "Inggris Raya", "BMU": "Inggris Raya", "IOT": "Inggris Raya", "VGB": "Inggris Raya", "CYM": "Inggris Raya", "FLK": "Inggris Raya", "GIB": "Inggris Raya", "MSR": "Inggris Raya", "PCN": "Inggris Raya", "SHN": "Inggris Raya", "SGS": "Inggris Raya", "TCA": "Inggris Raya", "JEY": "Inggris Raya", "GGY": "Inggris Raya", "IMN": "Inggris Raya",
-            "ASM": "Amerika Serikat", "GUM": "Amerika Serikat", "MNP": "Amerika Serikat", "PRI": "Amerika Serikat", "VIR": "Amerika Serikat", "UMI": "Amerika Serikat",
-            "ESH": "Dipersengketakan (Maroko/Sahrawi)", "ATA": "Traktat Antarktika"
-        };
-
-        // PETA DARATAN UTAMA (Override siluet hitam murni untuk negara yang gagal/terpotong di library mapsicon)
-        const shapeOverrides = {
-            "my": "https://cdn.jsdelivr.net/gh/Highcharts/map-collection-dist@master/countries/my/my-all.svg",
-            "us": "https://img.icons8.com/ios-filled/250/000000/usa-map.png",
-            "ru": "https://img.icons8.com/ios-filled/250/000000/russia-map.png"
-        };
-
-        // DATABASE MINI NEGARA BAGIAN AS (50 States)
-        const usStatesData = [
-            { id: "al", name: "Alabama", capital: "Montgomery", pop: 5024279, area: 135767 },
-            { id: "ak", name: "Alaska", capital: "Juneau", pop: 733391, area: 1717856 },
-            { id: "az", name: "Arizona", capital: "Phoenix", pop: 7151502, area: 295234 },
-            { id: "ar", name: "Arkansas", capital: "Little Rock", pop: 3011524, area: 137732 },
-            { id: "ca", name: "California", capital: "Sacramento", pop: 39538223, area: 423967 },
-            { id: "co", name: "Colorado", capital: "Denver", pop: 5773714, area: 269601 },
-            { id: "ct", name: "Connecticut", capital: "Hartford", pop: 3605944, area: 14357 },
-            { id: "de", name: "Delaware", capital: "Dover", pop: 989948, area: 6446 },
-            { id: "fl", name: "Florida", capital: "Tallahassee", pop: 21538187, area: 170312 },
-            { id: "ga", name: "Georgia", capital: "Atlanta", pop: 10711908, area: 153910 },
-            { id: "hi", name: "Hawaii", capital: "Honolulu", pop: 1455271, area: 28313 },
-            { id: "id", name: "Idaho", capital: "Boise", pop: 1839106, area: 216443 },
-            { id: "il", name: "Illinois", capital: "Springfield", pop: 12812508, area: 149995 },
-            { id: "in", name: "Indiana", capital: "Indianapolis", pop: 6785528, area: 94326 },
-            { id: "ia", name: "Iowa", capital: "Des Moines", pop: 3190369, area: 145746 },
-            { id: "ks", name: "Kansas", capital: "Topeka", pop: 2937880, area: 213100 },
-            { id: "ky", name: "Kentucky", capital: "Frankfort", pop: 4505836, area: 104656 },
-            { id: "la", name: "Louisiana", capital: "Baton Rouge", pop: 4657757, area: 135659 },
-            { id: "me", name: "Maine", capital: "Augusta", pop: 1362359, area: 91633 },
-            { id: "md", name: "Maryland", capital: "Annapolis", pop: 6177224, area: 32114 },
-            { id: "ma", name: "Massachusetts", capital: "Boston", pop: 7029917, area: 27336 },
-            { id: "mi", name: "Michigan", capital: "Lansing", pop: 10077331, area: 250487 },
-            { id: "mn", name: "Minnesota", capital: "St. Paul", pop: 5706494, area: 225163 },
-            { id: "ms", name: "Mississippi", capital: "Jackson", pop: 2961279, area: 125438 },
-            { id: "mo", name: "Missouri", capital: "Jefferson City", pop: 6154913, area: 180540 },
-            { id: "mt", name: "Montana", capital: "Helena", pop: 1084225, area: 380831 },
-            { id: "ne", name: "Nebraska", capital: "Lincoln", pop: 1961504, area: 200330 },
-            { id: "nv", name: "Nevada", capital: "Carson City", pop: 3104614, area: 286380 },
-            { id: "nh", name: "New Hampshire", capital: "Concord", pop: 1377529, area: 24214 },
-            { id: "nj", name: "New Jersey", capital: "Trenton", pop: 9288994, area: 22591 },
-            { id: "nm", name: "New Mexico", capital: "Santa Fe", pop: 2117522, area: 314917 },
-            { id: "ny", name: "New York", capital: "Albany", pop: 20201249, area: 141297 },
-            { id: "nc", name: "North Carolina", capital: "Raleigh", pop: 10439388, area: 139390 },
-            { id: "nd", name: "North Dakota", capital: "Bismarck", pop: 779094, area: 183108 },
-            { id: "oh", name: "Ohio", capital: "Columbus", pop: 11799448, area: 116096 },
-            { id: "ok", name: "Oklahoma", capital: "Oklahoma City", pop: 3959353, area: 181037 },
-            { id: "or", name: "Oregon", capital: "Salem", pop: 4237256, area: 254799 },
-            { id: "pa", name: "Pennsylvania", capital: "Harrisburg", pop: 13002700, area: 119280 },
-            { id: "ri", name: "Rhode Island", capital: "Providence", pop: 1097379, area: 4001 },
-            { id: "sc", name: "South Carolina", capital: "Columbia", pop: 5118425, area: 82933 },
-            { id: "sd", name: "South Dakota", capital: "Pierre", pop: 886667, area: 199729 },
-            { id: "tn", name: "Tennessee", capital: "Nashville", pop: 6910840, area: 109153 },
-            { id: "tx", name: "Texas", capital: "Austin", pop: 29145505, area: 695662 },
-            { id: "ut", name: "Utah", capital: "Salt Lake City", pop: 3271616, area: 219882 },
-            { id: "vt", name: "Vermont", capital: "Montpelier", pop: 643077, area: 24906 },
-            { id: "va", name: "Virginia", capital: "Richmond", pop: 8631393, area: 110787 },
-            { id: "wa", name: "Washington", capital: "Olympia", pop: 7705281, area: 184661 },
-            { id: "wv", name: "West Virginia", capital: "Charleston", pop: 1793716, area: 62756 },
-            { id: "wi", name: "Wisconsin", capital: "Madison", pop: 5893718, area: 169635 },
-            { id: "wy", name: "Wyoming", capital: "Cheyenne", pop: 576851, area: 253335 }
-        ];
 
         function getBorderNames(bordersArr) {
             if(!bordersArr || bordersArr.length === 0) return "Tidak Berbatasan Darat";
@@ -764,6 +761,7 @@
             'loading': document.getElementById('view-loading'), 'explore-menu': document.getElementById('view-explore-menu'),
             'explore-globe': document.getElementById('view-explore-globe'), 'explore-map': document.getElementById('view-explore-map'),
             'explore-catalog': document.getElementById('view-explore-catalog'), 'explore-states': document.getElementById('view-explore-states'),
+            'explore-provinces': document.getElementById('view-explore-provinces'), // NEW View
             'explore-continents': document.getElementById('view-explore-continents'), 
             'quiz-menu': document.getElementById('view-quiz-menu'), 'quiz-play': document.getElementById('view-quiz-play'), 
             'quiz-compare': document.getElementById('view-quiz-compare'), 'quiz-map-guess': document.getElementById('view-quiz-map-guess'), 
@@ -775,18 +773,30 @@
         // Fetch Data
         async function fetchCountries() {
             try {
-                const [res1, res2, res3] = await Promise.all([
+                const [res1, res2, res3, resHybrid, resUs, resIndo] = await Promise.all([
                     fetch('https://restcountries.com/v3.1/all?fields=name,cca3,capital,flags,region,subregion,population,area,latlng,borders'),
                     fetch('https://restcountries.com/v3.1/all?fields=cca3,currencies,languages,unMember,demonyms,coatOfArms,car,timezones,idd,tld'),
-                    fetch('https://restcountries.com/v3.1/all?fields=cca3,landlocked,cca2')
+                    fetch('https://restcountries.com/v3.1/all?fields=cca3,landlocked,cca2'),
+                    fetch('hybrid_data.json'),
+                    fetch('us_states.json'),
+                    fetch('indonesia_provinces.json')
                 ]);
                 
-                if (!res1.ok || !res2.ok || !res3.ok) throw new Error(`HTTP Error: Ada penolakan dari server API`);
+                if (!res1.ok || !res2.ok || !res3.ok || !resHybrid.ok || !resUs.ok || !resIndo.ok) {
+                    throw new Error(`HTTP Error: Gagal mengambil data`);
+                }
                 
                 const data1 = await res1.json();
                 const data2 = await res2.json();
                 const data3 = await res3.json();
                 
+                const hybridData = await resHybrid.json();
+                sovereignMap = hybridData.sovereignMap;
+                shapeOverrides = hybridData.shapeOverrides;
+                
+                usStatesData = await resUs.json();
+                indoProvincesData = await resIndo.json();
+
                 if (!Array.isArray(data1) || !Array.isArray(data2) || !Array.isArray(data3)) {
                     throw new Error("Format API tidak valid");
                 }
@@ -803,6 +813,7 @@
                     c.capital[0] !== "undefined" && c.capital[0].trim() !== "" &&
                     c.flags && c.flags.svg && c.latlng
                 );
+
             } catch (e) { 
                 console.error("Gagal menarik data:", e);
                 const loadingView = document.getElementById('view-loading');
@@ -810,7 +821,7 @@
                     loadingView.innerHTML = `
                         <div class="w-20 h-20 bg-brand-secondary/10 rounded-full flex items-center justify-center mb-4"><i class="ph-duotone ph-warning text-5xl text-brand-secondary"></i></div>
                         <h2 class="text-xl font-black text-slate-700">Gagal Memuat Data</h2>
-                        <p class="text-sm text-slate-400 font-medium text-center px-6 mt-2">Server API menolak permintaan. Silakan muat ulang.</p>
+                        <p class="text-sm text-slate-400 font-medium text-center px-6 mt-2">Server API menolak permintaan atau Data JSON gagal dimuat. Pastikan dijalankan melalui Local Web Server.</p>
                         <button onclick="location.reload()" class="mt-6 bg-brand-primary text-white font-bold px-6 py-2 rounded-xl btn-press">Muat Ulang</button>
                     `;
                 }
@@ -820,7 +831,7 @@
         // --- SISTEM MODAL OTOMATIS (Back Button History) ---
         window.onpopstate = (e) => {
             // Sembunyikan semua modal secara default
-            ['modal-country-detail', 'modal-state-detail', 'modal-related-list', 'modal-flag-zoom', 'modal-gameover'].forEach(id => {
+            ['modal-country-detail', 'modal-state-detail', 'modal-province-detail', 'modal-related-list', 'modal-flag-zoom', 'modal-gameover'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.classList.add('hidden');
             });
@@ -877,10 +888,11 @@
             populateCatalog(); 
             renderView('quiz-menu'); 
 
-            // Listener untuk Sticky Search Button di Katalog dan States
+            // Listener untuk Sticky Search Button di Katalog
             document.getElementById('main-scroll').addEventListener('scroll', function() {
                 const searchInputCat = document.getElementById('catalog-search');
                 const searchInputStates = document.getElementById('states-search');
+                const searchInputProvinces = document.getElementById('provinces-search');
                 const stickyBtn = document.getElementById('btn-sticky-search');
                 
                 let rect = null;
@@ -888,6 +900,8 @@
                     rect = searchInputCat.getBoundingClientRect();
                 } else if (!document.getElementById('view-explore-states').classList.contains('hidden') && searchInputStates) {
                     rect = searchInputStates.getBoundingClientRect();
+                } else if (!document.getElementById('view-explore-provinces').classList.contains('hidden') && searchInputProvinces) {
+                    rect = searchInputProvinces.getBoundingClientRect();
                 }
 
                 if (rect && stickyBtn) {
@@ -905,6 +919,8 @@
                     document.getElementById('catalog-search').focus();
                 } else if (!document.getElementById('view-explore-states').classList.contains('hidden')) {
                     document.getElementById('states-search').focus();
+                } else if (!document.getElementById('view-explore-provinces').classList.contains('hidden')) {
+                    document.getElementById('provinces-search').focus();
                 }
             }, 300);
         }
@@ -917,7 +933,7 @@
             document.getElementById('btn-sticky-search').classList.add('hidden'); 
             
             // Sembunyikan manual modal yang mungkin tersisa
-            ['modal-country-detail', 'modal-state-detail', 'modal-related-list', 'modal-flag-zoom', 'modal-gameover'].forEach(id => {
+            ['modal-country-detail', 'modal-state-detail', 'modal-province-detail', 'modal-related-list', 'modal-flag-zoom', 'modal-gameover'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.classList.add('hidden');
             });
@@ -940,6 +956,7 @@
             if(viewId === 'explore-globe') setTimeout(initGlobe, 200);
             if(viewId === 'explore-map') setTimeout(()=>initLeafletMap('explore'), 200);
             if(viewId === 'explore-states') populateStatesCatalog();
+            if(viewId === 'explore-provinces') populateProvincesCatalog();
             if(viewId === 'explore-continents') populateContinents();
         }
 
@@ -1239,6 +1256,49 @@
             });
         }
 
+        // --- SISTEM KATALOG & PENCARIAN PROVINSI INDONESIA (NEW) ---
+        function populateProvincesCatalog() {
+            const grid = document.getElementById('provinces-grid');
+            const sortVal = document.getElementById('provinces-sort').value; 
+            const searchVal = document.getElementById('provinces-search').value.toLowerCase();
+            grid.innerHTML = '';
+            
+            let filtered = [...indoProvincesData];
+            
+            if (searchVal) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(searchVal) || 
+                    p.capital.toLowerCase().includes(searchVal)
+                );
+            }
+
+            if(sortVal==='name-asc') filtered.sort((a,b)=>a.name.localeCompare(b.name)); 
+            else if(sortVal==='pop-desc') filtered.sort((a,b)=>b.population-a.population); 
+            else if(sortVal==='pop-asc') filtered.sort((a,b)=>a.population-b.population); 
+            else if(sortVal==='area-desc') filtered.sort((a,b)=>b.area-a.area); 
+            else if(sortVal==='area-asc') filtered.sort((a,b)=>a.area-b.area);
+            
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="text-center text-slate-400 font-bold py-10 w-full">Pencarian tidak ditemukan</div>`;
+                return;
+            }
+
+            filtered.forEach((p) => {
+                const card = document.createElement('div'); 
+                card.className = "bg-white p-3 rounded-2xl shadow-sm border border-slate-50 flex flex-col items-center text-center btn-press cursor-pointer hover:border-red-300 transition-colors relative overflow-hidden";
+                card.onclick = () => openProvinceDetail(p);
+
+                card.innerHTML = `
+                    <div class="w-full h-16 bg-slate-50 border border-slate-100 rounded flex items-center justify-center p-2 mb-2 mt-1">
+                        <img src="${p.coatOfArms}" class="max-w-full max-h-full object-contain filter drop-shadow-sm">
+                    </div>
+                    <span class="font-bold text-xs leading-tight text-slate-700 px-1 line-clamp-1">${p.name}</span>
+                    <span class="text-[10px] font-medium text-slate-400 line-clamp-1">${p.capital}</span>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
         // --- SISTEM KATALOG & PENCARIAN NEGARA BAGIAN AS ---
         function populateStatesCatalog() {
             const grid = document.getElementById('states-grid');
@@ -1431,6 +1491,18 @@
             document.getElementById('detail-state-capital').innerText = s.capital; 
             document.getElementById('detail-state-population').innerText = s.pop.toLocaleString('id-ID') + " Jiwa"; 
             document.getElementById('detail-state-area').innerText = s.area.toLocaleString('id-ID') + " km²"; 
+        }
+
+        // --- NEW: FUNGSI BUKA DETAIL PROVINSI INDONESIA ---
+        function openProvinceDetail(p) {
+            openModal('modal-province-detail');
+            
+            document.getElementById('detail-prov-coat').src = p.coatOfArms;
+            document.getElementById('detail-prov-name').innerText = p.name; 
+            document.getElementById('detail-prov-capital').innerText = p.capital; 
+            document.getElementById('detail-prov-population').innerText = p.population.toLocaleString('id-ID') + " Jiwa"; 
+            document.getElementById('detail-prov-area').innerText = p.area.toLocaleString('id-ID') + " km²"; 
+            document.getElementById('detail-prov-established').innerText = p.established; 
         }
 
         // --- FITUR RELASI (RELATED LIST MODAL) ---
