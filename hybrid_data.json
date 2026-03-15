@@ -13,6 +13,6 @@
     "ESH": "Dipersengketakan (Maroko/Sahrawi)", "ATA": "Traktat Antarktika"
   },
   "shapeOverrides": {
-    "my": "https://cdn.jsdelivr.net/gh/Highcharts/map-collection-dist@master/countries/my/my-all.svg",
+    "my": "https://cdn.jsdelivr.net/gh/Highcharts/map-collection-dist@master/countries/my/my-all.svg"
  }
 }
