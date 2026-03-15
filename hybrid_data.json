@@ -1,0 +1,18 @@
+{
+  "sovereignMap": {
+    "CXR": "Australia", "CCK": "Australia", "NFK": "Australia", "HMD": "Australia",
+    "MAC": "Tiongkok", "HKG": "Tiongkok",
+    "FRO": "Denmark", "GRL": "Denmark",
+    "ALA": "Finlandia",
+    "NCL": "Prancis", "GUF": "Prancis", "GLP": "Prancis", "MTQ": "Prancis", "MYT": "Prancis", "REU": "Prancis", "BLM": "Prancis", "MAF": "Prancis", "SPM": "Prancis", "WLF": "Prancis", "ATF": "Prancis",
+    "SJM": "Norwegia", "BVT": "Norwegia",
+    "TKL": "Selandia Baru", "NIU": "Selandia Baru", "COK": "Selandia Baru",
+    "ABW": "Belanda", "CUW": "Belanda", "SXM": "Belanda", "BES": "Belanda",
+    "AIA": "Inggris Raya", "BMU": "Inggris Raya", "IOT": "Inggris Raya", "VGB": "Inggris Raya", "CYM": "Inggris Raya", "FLK": "Inggris Raya", "GIB": "Inggris Raya", "MSR": "Inggris Raya", "PCN": "Inggris Raya", "SHN": "Inggris Raya", "SGS": "Inggris Raya", "TCA": "Inggris Raya", "JEY": "Inggris Raya", "GGY": "Inggris Raya", "IMN": "Inggris Raya",
+    "ASM": "Amerika Serikat", "GUM": "Amerika Serikat", "MNP": "Amerika Serikat", "PRI": "Amerika Serikat", "VIR": "Amerika Serikat", "UMI": "Amerika Serikat",
+    "ESH": "Dipersengketakan (Maroko/Sahrawi)", "ATA": "Traktat Antarktika"
+  },
+  "shapeOverrides": {
+    "my": "https://cdn.jsdelivr.net/gh/Highcharts/map-collection-dist@master/countries/my/my-all.svg",
+ }
+}
