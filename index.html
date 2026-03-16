@@ -699,17 +699,31 @@
             <p class="text-white/50 text-sm mt-6 font-medium">Tap X to close</p>
         </div>
 
-        <div id="modal-gameover" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
-            <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl animate-pop relative overflow-hidden">
-                <div class="w-20 h-20 bg-brand-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="ph-fill ph-skull text-4xl text-brand-secondary"></i>
+        <!-- MODAL GAME OVER DENGAN REVIEW KESALAHAN -->
+        <div id="modal-gameover" class="hidden absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6 transition-all">
+            <div class="bg-white rounded-3xl w-full max-w-sm max-h-[90vh] flex flex-col shadow-2xl animate-pop relative overflow-hidden">
+                
+                <div class="p-6 pb-2 text-center shrink-0">
+                    <div class="w-16 h-16 bg-brand-secondary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="ph-fill ph-skull text-3xl text-brand-secondary"></i>
+                    </div>
+                    <h2 class="text-2xl font-black mb-1 text-slate-800" id="go-title">Game Over!</h2>
+                    <p class="text-slate-500 text-sm font-medium" id="go-desc">Skor akhir Anda:</p>
+                    <div class="text-5xl font-black text-brand-primary mt-1" id="final-score">0</div>
                 </div>
-                <h2 class="text-2xl font-black mb-2 text-slate-800" id="go-title">Game Over!</h2>
-                <p class="text-slate-500 mb-4 font-medium" id="go-desc">Skor yang Anda kumpulkan:</p>
-                <div class="text-6xl font-black text-brand-primary mb-8" id="final-score">0</div>
-                <button onclick="closeGameOver()" class="w-full bg-brand-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/30 btn-press">
-                    Kembali ke Menu
-                </button>
+
+                <div class="flex-1 overflow-y-auto px-6 py-2 no-scrollbar border-t border-slate-100 mt-4 bg-slate-50 hidden" id="review-container">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 mt-2 text-center">Review Kesalahan</h3>
+                    <div id="review-list" class="flex flex-col gap-2 pb-4">
+                        <!-- Daftar kesalahan disuntikkan di sini -->
+                    </div>
+                </div>
+
+                <div class="p-4 shrink-0 bg-white border-t border-slate-100">
+                    <button onclick="closeGameOver()" class="w-full bg-brand-primary text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-500/30 btn-press">
+                        Kembali ke Menu
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -751,6 +765,10 @@
         let activeQuizType = 'mixed', currentSpecificQuestionType = '', currentDifficulty = 'easy', currentCorrectAnswer = null;
         let isCompareMode = false, compareProperty = 'population', countryA = null, countryB = null;
         let audioEnabled = true;
+
+        // Variabel untuk fitur Non-Repeat dan Review Kesalahan
+        let askedCountries = new Set();
+        let quizMistakes = [];
 
         let quizSettingLives = 3;
         let quizSettingTime = 0; 
@@ -1074,6 +1092,17 @@
         }
         function handleTimeOut(context) {
             appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 300);
+            
+            // Catat kesalahan waktu habis
+            let taskName = 'Waktu Habis';
+            if(context === 'classic') taskName = currentSpecificQuestionType === 'capital' ? 'Tebak Ibukota' : (currentSpecificQuestionType === 'flagToCountry' ? 'Tebak Negara' : 'Tebak Bendera');
+            else if(context === 'map-guess') taskName = 'Tebak Lokasi';
+            else if(context === 'map-find') taskName = 'Cari di Peta';
+            
+            if (activeQuizType !== 'population' && activeQuizType !== 'area') {
+                quizMistakes.push({ task: taskName + ' (Waktu Habis)', correct: currentCorrectAnswer.name.common, user: '-' });
+            }
+
             lives--; updateStatsDisplay(); showToast(false);
             if(context === 'classic') {
                 const btns = document.querySelectorAll('#options-container button');
@@ -1087,10 +1116,30 @@
             }
         }
 
+        // FUNGSI NON-REPEAT QUESTION: Memilih target tanpa pengulangan sampai habis
+        function getNextTargetCountry(excludeCca3 = null) {
+            let available = countriesData.filter(c => !askedCountries.has(c.cca3) && c.cca3 !== excludeCca3);
+            
+            // Jika semua negara sudah pernah ditanyakan, reset daftar tracker
+            if (available.length === 0) {
+                askedCountries.clear();
+                if (excludeCca3) askedCountries.add(excludeCca3);
+                available = countriesData.filter(c => c.cca3 !== excludeCca3);
+            }
+            
+            const picked = available[Math.floor(Math.random() * available.length)];
+            askedCountries.add(picked.cca3);
+            return picked;
+        }
+
         function startQuiz(mode) {
             maxLives = quizSettingLives; lives = maxLives;
             timeLimit = quizSettingTime;
-            score = 0; updateStatsDisplay(); activeQuizType = mode;
+            score = 0; 
+            askedCountries.clear(); // Reset tracker pertanyaan
+            quizMistakes = [];      // Reset daftar kesalahan
+            updateStatsDisplay(); activeQuizType = mode;
+            
             if(mode === 'population' || mode === 'area') { navigate('quiz-compare'); startCompareQuiz(mode); } 
             else if(mode === 'map-guess') { navigate('quiz-map-guess'); setTimeout(nextMapGuess, 200); }
             else if(mode === 'map-find') { navigate('quiz-map-find'); setTimeout(nextMapFind, 200); }
@@ -1103,7 +1152,10 @@
             const container = document.getElementById('options-container'); container.innerHTML = '';
             
             let qType = activeQuizType === 'mixed' ? ['capital', 'flagToCountry', 'countryToFlag'][Math.floor(Math.random() * 3)] : activeQuizType;
-            currentSpecificQuestionType = qType; currentCorrectAnswer = getRandomItems(countriesData, 1)[0];
+            currentSpecificQuestionType = qType; 
+            
+            // Menggunakan algoritma non-repeat
+            currentCorrectAnswer = getNextTargetCountry();
             
             let pool = countriesData.filter(c => currentDifficulty === 'medium' ? c.region === currentCorrectAnswer.region : (currentDifficulty === 'hard' ? c.subregion === currentCorrectAnswer.subregion : true));
             if (pool.length < 4) pool = countriesData;
@@ -1129,15 +1181,26 @@
             const btn = document.createElement('button'), isCorrect = (cObj === currentCorrectAnswer);
             btn.dataset.correct = isCorrect; 
             btn.className = "w-full bg-white border-2 border-slate-100 hover:border-brand-primary/50 text-slate-700 font-bold p-2 sm:p-3 rounded-2xl transition-all btn-press flex flex-col items-center justify-center group relative overflow-hidden min-h-[90px] shadow-sm";
-            if (type === 'text-capital') btn.innerHTML = `<span class="text-sm text-center leading-tight w-full px-1">${cObj.capital[0]}</span>`;
-            else if (type === 'text-country') btn.innerHTML = `<span class="text-sm text-center leading-tight w-full px-1">${cObj.name.common}</span>`;
-            else btn.innerHTML = `<img src="${cObj.flags.svg}" class="w-full h-full max-h-[70px] object-contain p-1 drop-shadow-sm">`;
+            
+            // Lencana Non-PBB untuk Opsi yang relevan
+            const nonUnHtml = !cObj.unMember ? `<div class="absolute top-2 right-2 bg-slate-100 text-slate-400 text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-sm border border-slate-200 z-10 leading-tight">Non-PBB</div>` : '';
+
+            if (type === 'text-capital') btn.innerHTML = `${nonUnHtml}<span class="text-sm text-center leading-tight w-full px-1 relative z-0">${cObj.capital[0]}</span>`;
+            else if (type === 'text-country') btn.innerHTML = `${nonUnHtml}<span class="text-sm text-center leading-tight w-full px-1 relative z-0">${cObj.name.common}</span>`;
+            else btn.innerHTML = `${nonUnHtml}<img src="${cObj.flags.svg}" class="w-full h-full max-h-[70px] object-contain p-1 drop-shadow-sm relative z-0">`;
             
             btn.onclick = () => {
                 stopTimer(); document.querySelectorAll('#options-container button').forEach(b => b.onclick = null);
                 if (isCorrect) { 
                     btn.classList.add('bg-brand-success/20', 'border-brand-success'); showToast(true); score+=10; updateStatsDisplay(); setTimeout(nextQuestion, 1000); 
                 } else { 
+                    // Catat kesalahan
+                    quizMistakes.push({ 
+                        task: type === 'text-capital' ? 'Tebak Ibukota' : (type === 'text-country' ? 'Tebak Negara' : 'Tebak Bendera'), 
+                        correct: currentCorrectAnswer.name.common, 
+                        user: cObj.name.common 
+                    });
+
                     btn.classList.add('bg-brand-secondary/20', 'border-brand-secondary'); 
                     appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 300); 
                     lives--; updateStatsDisplay(); showToast(false); 
@@ -1160,11 +1223,22 @@
             container.appendChild(btn);
         }
 
-        function startCompareQuiz(type) { compareProperty = type; countryA = getRandomItems(countriesData, 1)[0]; countryB = getNextCompare(countryA, countriesData); document.getElementById('compare-hint').classList.remove('hidden'); renderCompareUI(); }
-        function getNextCompare(baseC, poolData) { let pool = poolData.filter(c => c.cca3 !== baseC.cca3); return getRandomItems(pool, 1)[0]; }
+        function startCompareQuiz(type) { 
+            compareProperty = type; 
+            countryA = getNextTargetCountry(); 
+            countryB = getNextTargetCountry(countryA.cca3); 
+            document.getElementById('compare-hint').classList.remove('hidden'); renderCompareUI(); 
+        }
+        
         function renderCompareUI() {
-            document.getElementById('comp-flag-a').src = countryA.flags.svg; document.getElementById('comp-name-a').innerText = countryA.name.common; document.getElementById('comp-sub-a').innerText = countryA.subregion || '-'; document.getElementById('comp-type-a').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah'; document.getElementById('comp-val-a').innerText = compareProperty === 'population' ? countryA.population.toLocaleString('id-ID') : countryA.area.toLocaleString('id-ID') + " km²";
-            document.getElementById('comp-flag-b').src = countryB.flags.svg; document.getElementById('comp-name-b').innerText = countryB.name.common; document.getElementById('comp-sub-b').innerText = countryB.subregion || '-';
+            document.getElementById('comp-flag-a').src = countryA.flags.svg; 
+            document.getElementById('comp-name-a').innerHTML = countryA.name.common + (!countryA.unMember ? ' <span class="text-[9px] align-top bg-white/20 text-white px-1.5 py-0.5 rounded-full border border-white/30 ml-1">Non-PBB</span>' : ''); 
+            document.getElementById('comp-sub-a').innerText = countryA.subregion || '-'; document.getElementById('comp-type-a').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah'; document.getElementById('comp-val-a').innerText = compareProperty === 'population' ? countryA.population.toLocaleString('id-ID') : countryA.area.toLocaleString('id-ID') + " km²";
+            
+            document.getElementById('comp-flag-b').src = countryB.flags.svg; 
+            document.getElementById('comp-name-b').innerHTML = countryB.name.common + (!countryB.unMember ? ' <span class="text-[9px] align-top bg-white/20 text-white px-1.5 py-0.5 rounded-full border border-white/30 ml-1">Non-PBB</span>' : ''); 
+            document.getElementById('comp-sub-b').innerText = countryB.subregion || '-';
+            
             document.getElementById('comp-guess-b').classList.remove('hidden'); document.getElementById('comp-result-b').classList.add('hidden');
             ['compare-top','compare-bottom'].forEach(id => { document.getElementById(id).disabled = false; document.getElementById(id).classList.remove('animate-slide-down', 'animate-slide-up'); void document.getElementById(id).offsetWidth; });
             document.getElementById('compare-top').classList.add('animate-slide-down'); document.getElementById('compare-bottom').classList.add('animate-slide-up');
@@ -1175,15 +1249,28 @@
             const vA = countryA[compareProperty], vB = countryB[compareProperty], isCorrect = (chosenArea === 'A' && vA >= vB) || (chosenArea === 'B' && vB >= vA);
             document.getElementById('comp-type-b').innerText = compareProperty === 'population' ? 'populasi' : 'luas wilayah'; document.getElementById('comp-val-b').innerText = compareProperty === 'population' ? vB.toLocaleString('id-ID') : vB.toLocaleString('id-ID') + " km²";
             const valText = document.getElementById('comp-val-b');
-            if(isCorrect) { valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-success drop-shadow-lg"; score+=15; updateStatsDisplay(); showToast(true); } 
-            else { valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-secondary drop-shadow-lg"; appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 300); lives--; updateStatsDisplay(); showToast(false); }
-            setTimeout(() => { if(lives<=0 && !isCorrect) gameOver(); else { countryA = countryB; countryB = getNextCompare(countryA, countriesData); renderCompareUI(); } }, 1200); 
+            if(isCorrect) { 
+                valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-success drop-shadow-lg"; score+=15; updateStatsDisplay(); showToast(true); 
+            } else { 
+                // Catat kesalahan Adu Statistik
+                quizMistakes.push({ 
+                    task: compareProperty === 'population' ? 'Adu Populasi' : 'Adu Luas Wilayah', 
+                    correct: (vA >= vB ? countryA.name.common : countryB.name.common), 
+                    user: (chosenArea === 'A' ? countryA.name.common : countryB.name.common) 
+                });
+
+                valText.className = "text-4xl sm:text-5xl font-black tracking-tighter text-brand-secondary drop-shadow-lg"; appContainer.classList.add('animate-shake'); setTimeout(() => appContainer.classList.remove('animate-shake'), 300); lives--; updateStatsDisplay(); showToast(false); 
+            }
+            setTimeout(() => { if(lives<=0 && !isCorrect) gameOver(); else { countryA = countryB; countryB = getNextTargetCountry(countryA.cca3); renderCompareUI(); } }, 1200); 
         }
 
         let mapGuessLeaflet = null;
         function nextMapGuess() {
             stopTimer(); if(lives <= 0) return gameOver();
-            currentCorrectAnswer = getRandomItems(countriesData, 1)[0];
+            
+            // Menggunakan algoritma non-repeat
+            currentCorrectAnswer = getNextTargetCountry();
+            
             let pool = countriesData.filter(c => c !== currentCorrectAnswer && c.region === currentCorrectAnswer.region);
             if(pool.length<3) pool = countriesData.filter(c=>c!==currentCorrectAnswer);
             const options = getRandomItems([currentCorrectAnswer, ...getRandomItems(pool, 3)], 4);
@@ -1196,12 +1283,19 @@
             
             const container = document.getElementById('map-guess-options'); container.innerHTML = '';
             options.forEach(c => {
-                const btn = document.createElement('button'); btn.className = "bg-slate-50 border-2 border-slate-100 font-bold p-3 rounded-xl btn-press text-sm text-slate-700 shadow-sm";
-                btn.innerText = c.name.common;
+                const btn = document.createElement('button'); btn.className = "bg-slate-50 border-2 border-slate-100 font-bold p-3 rounded-xl btn-press text-sm text-slate-700 shadow-sm relative";
+                
+                btn.innerHTML = `${c.name.common} ${!c.unMember ? '<span class="ml-1 bg-slate-200 text-slate-500 text-[8px] px-1.5 py-0.5 rounded shadow-sm border border-slate-300 relative -top-0.5">Non-PBB</span>' : ''}`;
+                
                 btn.onclick = () => {
                     stopTimer(); Array.from(container.children).forEach(b=>b.onclick=null);
                     if(c === currentCorrectAnswer) { btn.classList.add('bg-brand-success/20','border-brand-success'); showToast(true); score+=20; updateStatsDisplay(); setTimeout(nextMapGuess, 1000); }
-                    else { btn.classList.add('bg-brand-secondary/20','border-brand-secondary'); showToast(false); lives--; updateStatsDisplay(); appContainer.classList.add('animate-shake'); setTimeout(()=>appContainer.classList.remove('animate-shake'),400); Array.from(container.children).find(b=>b.innerText===currentCorrectAnswer.name.common).classList.add('bg-brand-success/20','border-brand-success','border-dashed'); setTimeout(nextMapGuess, 1500); }
+                    else { 
+                        // Catat Kesalahan
+                        quizMistakes.push({ task: 'Tebak Lokasi', correct: currentCorrectAnswer.name.common, user: c.name.common });
+                        
+                        btn.classList.add('bg-brand-secondary/20','border-brand-secondary'); showToast(false); lives--; updateStatsDisplay(); appContainer.classList.add('animate-shake'); setTimeout(()=>appContainer.classList.remove('animate-shake'),400); Array.from(container.children).find(b=>b.innerText.includes(currentCorrectAnswer.name.common)).classList.add('bg-brand-success/20','border-brand-success','border-dashed'); setTimeout(nextMapGuess, 1500); 
+                    }
                 };
                 container.appendChild(btn);
             });
@@ -1211,8 +1305,11 @@
         let mapFindLeaflet = null, findMarkers = [];
         function nextMapFind() {
             stopTimer(); if(lives <= 0) return gameOver();
-            currentCorrectAnswer = getRandomItems(countriesData, 1)[0];
-            document.getElementById('map-find-target').innerText = currentCorrectAnswer.name.common;
+            
+            // Menggunakan algoritma non-repeat
+            currentCorrectAnswer = getNextTargetCountry();
+            
+            document.getElementById('map-find-target').innerHTML = currentCorrectAnswer.name.common + (!currentCorrectAnswer.unMember ? ' <span class="text-[10px] align-top bg-brand-primary/10 text-brand-primary px-1.5 py-0.5 rounded-full border border-brand-primary/20 ml-1 shadow-sm">Non-PBB</span>' : '');
             
             if(!mapFindLeaflet) {
                 mapFindLeaflet = L.map('map-find-container', {zoomControl: false}).setView([20,0], 2);
@@ -1232,6 +1329,9 @@
                         marker.setIcon(L.divIcon({className:'', html: `<div class="w-6 h-6 bg-brand-success border-2 border-white rounded-full animate-bounce"></div>`, iconSize:[24,24]}));
                         showToast(true); score+=25; updateStatsDisplay(); setTimeout(nextMapFind, 1500);
                     } else {
+                        // Catat kesalahan
+                        quizMistakes.push({ task: 'Cari di Peta', correct: currentCorrectAnswer.name.common, user: 'Negara Lain' });
+
                         marker.setIcon(L.divIcon({className:'', html: `<div class="w-4 h-4 bg-brand-secondary border-2 border-white rounded-full"></div>`, iconSize:[16,16]}));
                         const correctMarker = findMarkers.find(m => m.isCorrectTarget);
                         if(correctMarker) correctMarker.marker.setIcon(L.divIcon({className:'', html: `<div class="w-6 h-6 bg-brand-success border-2 border-white rounded-full animate-pulse shadow-[0_0_15px_#10b981]"></div>`, iconSize:[24,24]}));
@@ -1244,7 +1344,10 @@
             mapFindLeaflet.setView([20,0], 2);
             runTimer('map-find');
         }
-        function skipMapFind() { lives--; updateStatsDisplay(); stopTimer(); showToast(false); setTimeout(nextMapFind, 500); }
+        function skipMapFind() { 
+            quizMistakes.push({ task: 'Cari di Peta (Dilewati)', correct: currentCorrectAnswer.name.common, user: 'Skip' });
+            lives--; updateStatsDisplay(); stopTimer(); showToast(false); setTimeout(nextMapFind, 500); 
+        }
 
         function showToast(isCorrect) {
             playSfx(isCorrect ? 'correct' : 'wrong');
@@ -1263,6 +1366,38 @@
         function gameOver() { 
             stopTimer(); 
             document.getElementById('final-score').innerText = score; 
+            
+            // Render Daftar Kesalahan (Review UI)
+            const reviewList = document.getElementById('review-list');
+            const reviewContainer = document.getElementById('review-container');
+            reviewList.innerHTML = '';
+            
+            if (quizMistakes.length > 0) {
+                reviewContainer.classList.remove('hidden');
+                quizMistakes.forEach((m) => {
+                    reviewList.innerHTML += `
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-1.5">
+                            <div class="flex items-center gap-1.5">
+                                <i class="ph-fill ph-warning-circle text-brand-secondary text-sm"></i>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">${m.task}</span>
+                            </div>
+                            <div class="flex justify-between items-start gap-2 text-xs">
+                                <div class="flex-1">
+                                    <span class="text-slate-400 block mb-0.5">Jawaban Anda:</span>
+                                    <span class="font-bold text-slate-700 line-through decoration-rose-500">${m.user}</span>
+                                </div>
+                                <div class="flex-1 text-right border-l border-slate-100 pl-2">
+                                    <span class="text-slate-400 block mb-0.5">Seharusnya:</span>
+                                    <span class="font-bold text-brand-success">${m.correct}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                reviewContainer.classList.add('hidden');
+            }
+
             openModal('modal-gameover'); 
         }
 
